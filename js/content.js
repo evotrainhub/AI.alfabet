@@ -6,43 +6,161 @@
    tf    – adevăr sau mit              {t:'tf', q, answer:true|false, explain}
    order – pune în ordine              {t:'order', q, items:[în ordinea corectă], explain}
    match – potrivește perechile        {t:'match', q, pairs:[[stânga, dreapta],...], explain}
+   spot  – atinge fragmentele corecte  {t:'spot', q, segments:['text', {p:'fragment', hit:true|false}, ...], explain}
+   sort  – sortează în categorii       {t:'sort', q, buckets:['A','B'], items:[{text, b:0|1}], explain}
+   flip  – cartonașe care se întorc    {t:'flip', q, cards:[{front, tag, back}]}
+   recap – „Pe scurt”, finalul lecției {t:'recap', points:[...]}
+   La info: guide (replica ghidului) și visual:
+     {type:'reveal', layout:'timeline'|'grid'|'rings'|'line', items:[{icon,label,text}]}
+     {type:'compare', left:{icon,title,lines}, right:{...}}
+     {type:'steps', cycle?, items:[{icon,label,text}]}
+     {type:'slider', label, note?, stops:[{label,bar,caption}]}
+     {type:'toggle', q?, note?, options:[{label, bar?, barLabel?, caption?, input?, output?}]}
+   La mcq: feedback:[...] oferă un mesaj pentru fiecare variantă.
    ===================================================================== */
 window.MODULES = [
 {
-  id: 'm1', title: 'Ce este AI și ce nu este', subtitle: 'Bazele, fără termeni complicați', color: '#1F8CC9', icon: 'spark',
+  id: 'm1', title: 'Ce este AI și ce nu este', zone: 'Luminișul începuturilor', subtitle: 'Bazele, fără termeni complicați', color: '#22A55B', icon: 'spark',
   lessons: [
   { id: 'm1l1', title: 'AI e deja în viața ta', steps: [
-    {t:'info', title:'Folosești AI de ani de zile', body:'Când telefonul îți recunoaște fața, când YouTube îți recomandă un video, când e-mailul mută un mesaj în Spam sau când Waze găsește un drum ocolitor, în spate lucrează inteligența artificială.<br><br>Ce s-a schimbat în ultimii ani: acum poți <b>vorbi direct</b> cu ea, în limba română.'},
-    {t:'mcq', q:'Care dintre acestea NU folosește inteligență artificială?', options:['Filtrul de spam din e-mail','Deblocarea telefonului cu fața','Un calculator de buzunar care face adunări','Traducerea automată a unei pagini web'], answer:2, explain:'Calculatorul urmează reguli fixe, scrise de un programator. Nu învață nimic din exemple.'},
-    {t:'info', title:'Program clasic sau AI?', body:'Un <b>program clasic</b> urmează reguli scrise pas cu pas: „dacă se întâmplă X, fă Y”.<br><br>Un <b>sistem AI</b> își învață singur regulile din foarte multe exemple. Nimeni nu a scris regula exactă pentru fiecare mesaj de spam. Sistemul a învățat-o din milioane de mesaje marcate de oameni.'},
-    {t:'tf', q:'Inteligența artificială e o tehnologie a viitorului, pe care încă n-o folosim în viața de zi cu zi.', answer:false, explain:'O folosești deja zilnic: în telefon, pe rețelele sociale, în hărți, în e-mail.'},
-    {t:'match', q:'Potrivește aplicația cu ce face AI-ul din ea', pairs:[['Waze / Google Maps','Estimează traficul și propune ruta'],['YouTube / Netflix','Îți recomandă ce să vezi'],['Camera telefonului','Recunoaște fețe și reglează poza'],['Google Translate','Traduce texte între limbi']], explain:'Toate învață din date: trasee, preferințe, imagini, texte.'}
+    {t:'info', title:'O zi obișnuită, plină de AI', guide:'Înainte de ChatGPT, hai să vedem cât AI folosești deja. Atinge fiecare moment al zilei.',
+      body:'Inteligența artificială nu a apărut odată cu ChatGPT. Lucrează de ani buni în telefonul tău, în e-mail și în aplicațiile de zi cu zi, de cele mai multe ori fără să o observi.',
+      visual:{type:'reveal', layout:'timeline', items:[
+        {icon:'📱', label:'7:00 · Deblochezi telefonul', text:'Telefonul îți recunoaște fața. Un model AI a învățat din milioane de fețe cum să deosebească trăsăturile unei persoane de ale alteia.'},
+        {icon:'🗺️', label:'8:10 · Pleci spre birou', text:'Aplicația de hărți estimează traficul și îți propune altă rută. AI-ul învață din datele de deplasare ale milioanelor de utilizatori.'},
+        {icon:'📧', label:'9:30 · Deschizi e-mailul', text:'Mesajele de tip spam au ajuns deja în dosarul separat. Filtrul a învățat din mesajele marcate ca spam de alți oameni.'},
+        {icon:'💳', label:'13:00 · Plătești cu cardul', text:'Banca verifică în câteva milisecunde dacă plata seamănă cu obiceiurile tale. Dacă pare neobișnuită, o poate bloca.'},
+        {icon:'🎬', label:'21:00 · Te uiți la un film', text:'Platforma îți recomandă ce să vezi, pe baza a ce ai urmărit tu și a ce au urmărit oameni cu gusturi asemănătoare.'}
+      ]}},
+    {t:'info', title:'Program clasic sau AI? Diferența-cheie', guide:'Asta e ideea cea mai importantă din toată lecția.',
+      body:'Un <b>program clasic</b> funcționează ca o rețetă: un programator scrie regulile pas cu pas („dacă mesajul conține cuvântul X, mută-l în spam”). Problema: cei care trimit spam schimbă cuvintele, iar regulile rămân în urmă.<br><br>Un <b>sistem AI</b> nu primește regulile. Primește <b>exemple</b> (milioane de mesaje marcate „spam” sau „normal”) și își formează singur tiparele. De aceea se descurcă și cu mesaje pe care nu le-a mai văzut.',
+      visual:{type:'compare',
+        left:{icon:'📋', title:'Program clasic', lines:['Omul scrie regulile','Regulile sunt fixe','Face exact ce i s-a spus','Nu se descurcă cu situații noi']},
+        right:{icon:'🧠', title:'Sistem AI', lines:['Omul dă exemple','Sistemul își formează tiparele','Se descurcă și cu cazuri noi','Poate greși în moduri neașteptate']}}},
+    {t:'info', title:'De ce tocmai acum?', guide:'Apasă „Pasul următor” ca să vezi cele trei ingrediente.',
+      body:'Ideea de inteligență artificială există din anii 1950. Explozia din ultimii ani vine din întâlnirea a trei ingrediente. În noiembrie 2022, lansarea ChatGPT a făcut ca oricine să poată vorbi direct cu un astfel de sistem.',
+      visual:{type:'steps', items:[
+        {icon:'🗂️', label:'Date', text:'Internetul a adunat cantități uriașe de texte, imagini și înregistrări din care sistemele pot învăța.'},
+        {icon:'⚡', label:'Putere de calcul', text:'Plăcile grafice, create inițial pentru jocuri, s-au dovedit perfecte pentru calculele de care are nevoie AI-ul.'},
+        {icon:'🧩', label:'Metode noi', text:'În 2017, cercetători de la Google au publicat arhitectura „Transformer”, pe care se bazează aproape toți asistenții de azi.'}
+      ]}},
+    {t:'spot', q:'Citește ziua Mariei și atinge momentele în care folosește AI', segments:[
+      'Maria ', {p:'își deblochează telefonul cu fața', hit:true}, ', apoi ', {p:'își face o cafea la espressor', hit:false}, '. În mașină, ', {p:'aplicația de hărți o anunță că e trafic', hit:true}, '. La prânz ', {p:'numără restul primit la piață', hit:false}, ', iar seara ', {p:'YouTube îi propune un video nou', hit:true}, '.'
+    ], explain:'Deblocarea cu fața, estimarea traficului și recomandările folosesc AI. Espressorul și socotitul restului nu.'},
+    {t:'sort', q:'Program clasic sau AI? Pune fiecare exemplu la locul lui', buckets:['📋 Program clasic','🧠 AI'], items:[
+      {text:'Calculatorul de buzunar', b:0},{text:'Filtrul de spam din e-mail', b:1},{text:'Formula =SUMA() din Excel', b:0},
+      {text:'Recunoașterea comenzilor vocale', b:1},{text:'Semaforul cu timp fix', b:0},{text:'Recomandările de produse ale unui magazin online', b:1}
+    ], explain:'Ce învață din exemple e AI. Ce urmează reguli scrise dinainte e program clasic.'},
+    {t:'mcq', q:'Ce îl face pe un sistem să fie „AI”?', options:['Faptul că e foarte rapid','Faptul că își formează singur tiparele din exemple','Faptul că rulează pe internet','Faptul că e scump'], answer:1,
+      feedback:['Și un calculator clasic e foarte rapid. Viteza nu îl face AI.','Exact. Învățarea din exemple e diferența-cheie.','Multe programe clasice rulează pe internet.','Prețul nu are legătură cu felul în care funcționează.']},
+    {t:'tf', q:'Inteligența artificială e o tehnologie a viitorului, pe care încă nu o folosim în viața de zi cu zi.', answer:false, explain:'O folosești deja zilnic: în telefon, pe hărți, în e-mail și la plățile cu cardul.'},
+    {t:'recap', points:['AI-ul e deja prezent în multe aplicații pe care le folosești zilnic.','Un program clasic urmează reguli scrise de om. Un sistem AI își formează tiparele din exemple.','Explozia recentă vine din date multe, putere de calcul și metode noi.']}
   ]},
   { id: 'm1l2', title: 'Ce înseamnă, de fapt, „AI”', steps: [
-    {t:'info', title:'O definiție simplă', body:'Inteligența artificială înseamnă sisteme informatice care fac sarcini pentru care, de obicei, e nevoie de inteligență umană: să recunoască imagini, să înțeleagă limbajul, să facă recomandări, să scrie texte.<br><br>Nu e un „creier” și nu are intenții. E matematică avansată aplicată pe cantități uriașe de date.'},
-    {t:'tf', q:'Sistemele AI de azi au conștiință și emoții, doar că nu le arată.', answer:false, explain:'Un chatbot poate scrie „mă bucur”, pentru că a văzut milioane de texte în care oamenii scriu așa. Nu simte nimic.'},
-    {t:'info', title:'AI specializat și AI general', body:'Tot ce există azi e AI <b>specializat</b>: foarte bun la anumite sarcini, slab la altele.<br><br>Un AI <b>general</b>, care să facă orice sarcină ca un om, rămâne subiect de cercetare și dezbatere. Chiar și chatboturile care par să știe de toate au limite clare. Le vei vedea în modulul 5.'},
-    {t:'mcq', q:'Care descriere se potrivește cel mai bine AI-ului de azi?', options:['Un program care gândește exact ca un om','Un sistem care învață tipare din date și le aplică','O bază de date cu toate răspunsurile corecte','Un robot care poate face orice sarcină'], answer:1, explain:'Cheia este „învață tipare din date”. De acolo vin și punctele lui forte, și greșelile.'},
-    {t:'tf', q:'Un chatbot poate scrie foarte bine un text și, în același timp, poate greși un calcul simplu.', answer:true, explain:'Este foarte bun la limbaj, dar nu este un calculator. Vei vedea de ce în modulul următor.'}
+    {t:'info', title:'O familie de tehnologii', guide:'Atinge fiecare cerc, de la exterior spre interior.',
+      body:'Vei auzi mulți termeni: AI, machine learning, deep learning, AI generativ. Nu sunt lucruri diferite, ci cercuri unul în altul, de la cel mai larg la cel mai specific.',
+      visual:{type:'reveal', layout:'rings', items:[
+        {label:'Inteligență artificială', text:'Tot domeniul: sisteme care fac sarcini pentru care, de obicei, e nevoie de inteligență umană (recunoaștere, limbaj, recomandări, decizii).'},
+        {label:'Învățare automată', text:'Machine learning. Metoda prin care sistemul învață din exemple, în loc să primească reguli scrise. Aproape tot AI-ul modern e construit așa.'},
+        {label:'Învățare profundă', text:'Deep learning. Învățare automată cu „rețele neuronale” foarte mari, cu multe straturi. A adus marile progrese la imagini, voce și limbaj.'},
+        {label:'AI generativ', text:'Sistemele care creează conținut nou: text, imagini, sunet, cod. ChatGPT, Claude, Gemini sau Copilot fac parte de aici.'}
+      ]}},
+    {t:'info', title:'Nu gândește ca noi', guide:'Aici apar cele mai multe neînțelegeri.',
+      body:'AI-ul nu are gânduri, intenții sau emoții. Nu există dovezi că sistemele de azi ar avea conștiință.<br><br>Un chatbot poate scrie „mă bucur să te ajut” pentru că a văzut milioane de texte în care oamenii scriu așa, nu pentru că simte ceva. Seamănă cu o <b>oglindă foarte sofisticată a limbajului uman</b>: reflectă tiparele din texte, cu tot ce au ele bun și rău.',
+      visual:{type:'compare',
+        left:{icon:'🙂', title:'Ce pare', lines:['Înțelege ce spun','Are păreri','E sigur pe el','Știe tot']},
+        right:{icon:'🔍', title:'Ce se întâmplă de fapt', lines:['Recunoaște tipare în text','Reproduce formulări frecvente','Tonul sigur e doar stil','Știe doar ce a învățat']}}},
+    {t:'info', title:'Specializat sau general?', guide:'Mută-te de-a lungul liniei și vezi unde se află fiecare.',
+      body:'Tot AI-ul care există azi e <b>specializat</b>: foarte bun la unele sarcini, slab la altele. Un chatbot pare să știe de toate, dar are limite clare. Un AI <b>general</b>, capabil de orice sarcină intelectuală ca un om, rămâne subiect de cercetare și de dezbatere.',
+      visual:{type:'reveal', layout:'line', items:[
+        {icon:'🧮', label:'Calculator', text:'Nu e AI. Urmează reguli fixe, fără învățare.'},
+        {icon:'♟️', label:'AI de șah', text:'Specializat îngust: bate orice campion, dar nu știe să scrie un e-mail.'},
+        {icon:'💬', label:'Chatbot', text:'Specializat larg: scrie, rezumă, traduce, explică. Dar greșește la calcule, poate inventa informații și nu acționează singur în lume.'},
+        {icon:'❓', label:'AI general', text:'Ipotetic. Nu există azi. Specialiștii nu sunt de acord nici când, nici dacă va apărea.'}
+      ]}},
+    {t:'flip', q:'Mit sau realitate? Întoarce fiecare cartonaș', cards:[
+      {front:'„AI-ul gândește ca un om.”', tag:'Mit', back:'Recunoaște tipare statistice. Nu are gânduri sau intenții.'},
+      {front:'„AI-ul poate greși cu mare încredere.”', tag:'Realitate', back:'Tonul sigur nu garantează că răspunsul e corect.'},
+      {front:'„AI-ul va înlocui mâine toate joburile.”', tag:'Mit', back:'Schimbă mai ales sarcini din cadrul joburilor, nu joburi întregi peste noapte.'},
+      {front:'„AI-ul e atât de bun cât sunt datele lui.”', tag:'Realitate', back:'Datele puține, vechi sau dezechilibrate duc la rezultate slabe.'}
+    ]},
+    {t:'match', q:'Potrivește termenul cu explicația', pairs:[['Inteligență artificială','Tot domeniul'],['Învățare automată','Învățare din exemple'],['Învățare profundă','Rețele neuronale mari'],['AI generativ','Creează conținut nou']], explain:'Patru cercuri, unul în altul.'},
+    {t:'mcq', q:'Care descriere se potrivește cel mai bine AI-ului de azi?', options:['Un program care gândește exact ca un om','Un sistem care învață tipare din date și le aplică','O bază de date cu toate răspunsurile corecte','Un robot care poate face orice sarcină'], answer:1,
+      feedback:['Pare așa, dar nu gândește ca un om.','Exact. De aici vin și punctele lui forte, și greșelile.','Nu caută răspunsuri gata scrise. Le generează.','Asta ar fi AI-ul general, care nu există azi.']},
+    {t:'tf', q:'Un chatbot poate scrie foarte bine un text și, în același timp, poate greși un calcul simplu.', answer:true, explain:'E foarte bun la limbaj, dar nu e un calculator. Vei vedea de ce în modulul 2.'},
+    {t:'recap', points:['AI, învățare automată, învățare profundă și AI generativ sunt cercuri unul în altul.','AI-ul nu gândește și nu simte. Reflectă tiparele din datele din care a învățat.','Tot AI-ul de azi e specializat, inclusiv chatboturile.']}
   ]},
   { id: 'm1l3', title: 'Cum învață o mașină', steps: [
-    {t:'info', title:'Învățarea din exemple', body:'Gândește-te cum învață un copil ce e o pisică. Vede multe pisici, i se spune „asta e o pisică”, iar după un timp recunoaște una pe care n-a mai văzut-o.<br><br><b>Învățarea automată</b> (machine learning) funcționează asemănător. Sistemul primește foarte multe exemple și își ajustează singur „setările interne” până greșește tot mai rar.'},
-    {t:'order', q:'Pune în ordine etapele prin care se construiește un sistem AI', items:['Se adună foarte multe date (exemple)','Sistemul este antrenat pe aceste date','Este testat pe exemple pe care nu le-a văzut','Este pus la dispoziția utilizatorilor'], explain:'Date, antrenare, testare, folosire. Calitatea fiecărei etape se vede în rezultat.'},
-    {t:'info', title:'Datele contează enorm', body:'Un sistem AI e atât de bun cât sunt datele din care a învățat.<br><br>Dacă a avut <b>date puține</b>, greșește des. Dacă datele au fost <b>dezechilibrate</b>, preia dezechilibrele. Dacă datele sunt <b>vechi</b>, nu știe ce s-a întâmplat recent.'},
-    {t:'mcq', q:'Un sistem care recunoaște bolile plantelor a fost antrenat doar cu poze făcute vara. Ce se poate întâmpla iarna?', options:['Funcționează perfect, plantele sunt aceleași','Poate greși mai des, pentru că n-a văzut exemple de iarnă','Se actualizează singur cu poze de iarnă','Refuză să funcționeze'], answer:1, explain:'Sistemul recunoaște bine doar situații asemănătoare celor din care a învățat.'},
-    {t:'tf', q:'Un chatbot învață în timp real din fiecare conversație cu tine și devine imediat mai deștept.', answer:false, explain:'De obicei modelul e antrenat dinainte și apoi rămâne „înghețat”. Unele companii pot folosi conversațiile mai târziu, pentru antrenări viitoare, dacă setările permit. De aceea contează ce scrii (modulul 6).'}
+    {t:'info', title:'Învățarea din exemple', guide:'Mută glisorul și urmărește ce se întâmplă cu precizia.',
+      body:'Gândește-te cum învață un copil ce e o pisică. Vede multe pisici, i se spune „asta e pisică”, iar după un timp recunoaște una pe care n-a mai văzut-o.<br><br>Un sistem AI face ceva asemănător, doar că are nevoie de <b>mult mai multe exemple</b> decât un copil.',
+      visual:{type:'slider', label:'Câte poze etichetate primește sistemul?', note:'Valori ilustrative', stops:[
+        {label:'10', bar:52, caption:'Aproape la întâmplare. Nu a văzut destule pisici ca să le deosebească de câini.'},
+        {label:'100', bar:71, caption:'Începe să prindă tiparele: urechi ascuțite, mustăți, forma botului.'},
+        {label:'10.000', bar:90, caption:'Recunoaște majoritatea pisicilor, dar încă greșește la poze neclare.'},
+        {label:'1.000.000', bar:97, caption:'Foarte precis, dar tot nu perfect. Nicio cantitate de date nu elimină complet greșelile.'}
+      ]}},
+    {t:'info', title:'Cum „învață”, concret', guide:'Apasă „Pasul următor” ca să parcurgi ciclul.',
+      body:'În interior, sistemul are un număr uriaș de „butoane de reglaj” numite <b>parametri</b>. Modelele mari au miliarde. Antrenarea înseamnă repetarea unui ciclu simplu de foarte multe ori:',
+      visual:{type:'steps', cycle:true, items:[
+        {icon:'🎯', label:'Ghicește', text:'Sistemul primește un exemplu și dă un răspuns: „pisică, 60%”.'},
+        {icon:'✅', label:'Compară', text:'Răspunsul este comparat cu eticheta corectă pusă de oameni: „câine”.'},
+        {icon:'🔧', label:'Ajustează', text:'Parametrii sunt modificați puțin, ca data viitoare greșeala să fie mai mică.'},
+        {icon:'🔁', label:'Repetă', text:'Ciclul se repetă de milioane de ori, pe milioane de exemple, până când greșelile devin rare.'}
+      ]}},
+    {t:'info', title:'Datele decid rezultatul', guide:'Comută între cele două variante.',
+      body:'Un sistem AI e atât de bun cât sunt datele din care a învățat. Dacă datele au fost <b>puține</b>, greșește des. Dacă au fost <b>dezechilibrate</b>, preia dezechilibrele. Dacă sunt <b>vechi</b>, nu știe ce s-a schimbat.',
+      visual:{type:'toggle', q:'Sistem care recunoaște boli ale plantelor. Cum se descurcă iarna?', options:[
+        {label:'Antrenat doar cu poze de vară', bar:48, barLabel:'Precizie iarna', caption:'Nu a văzut niciodată frunze cu brumă sau lumină de iarnă, așa că greșește des.'},
+        {label:'Antrenat cu poze din tot anul', bar:91, barLabel:'Precizie iarna', caption:'A văzut condiții variate și se descurcă mult mai bine.'}
+      ], note:'Valori ilustrative'}},
+    {t:'info', title:'După antrenare, modelul „îngheață”', guide:'Asta explică multe lucruri despre chatboturi.',
+      body:'După antrenare, modelul e testat și pus la dispoziția oamenilor. De obicei <b>nu mai învață</b> din fiecare conversație, în timp real. De aceea nu știe ce s-a întâmplat după data până la care a fost antrenat.<br><br>Unele companii pot folosi conversațiile mai târziu, pentru antrenări viitoare, dacă setările contului permit. De aceea contează ce scrii (modulul 6).'},
+    {t:'order', q:'Pune în ordine etapele prin care se construiește un sistem AI', items:['Se adună foarte multe date (exemple)','Oamenii etichetează exemplele','Sistemul este antrenat pe aceste date','Este testat pe exemple pe care nu le-a văzut','Este pus la dispoziția utilizatorilor'], explain:'Date, etichetare, antrenare, testare, folosire.'},
+    {t:'sort', q:'Date bune sau date problematice pentru un sistem care recunoaște indicatoare rutiere?', buckets:['👍 Date bune','⚠️ Date problematice'], items:[
+      {text:'Poze din toate anotimpurile', b:0},{text:'Doar poze făcute ziua', b:1},{text:'Poze din mai multe țări', b:0},
+      {text:'Poze etichetate greșit', b:1},{text:'Doar 20 de poze', b:1},{text:'Poze și cu indicatoare murdare sau parțial acoperite', b:0}
+    ], explain:'Datele bune sunt multe, corect etichetate și variate, ca situațiile reale.'},
+    {t:'mcq', q:'Un chatbot a fost antrenat până la o anumită dată. Îl întrebi despre o lege adoptată luna trecută. Ce se poate întâmpla?', options:['Știe sigur, pentru că învață zilnic','Poate să nu știe sau să răspundă cu informații vechi, dacă nu caută pe internet','Refuză mereu să răspundă','Sună la Parlament'], answer:1,
+      feedback:['De obicei modelul nu învață zilnic. E „înghețat” după antrenare.','Corect. Fără căutare pe internet, răspunde din ce a învățat înainte.','Uneori recunoaște că nu știe, dar adesea răspunde oricum.','Nu are cum.']},
+    {t:'tf', q:'Un chatbot învață în timp real din fiecare conversație cu tine și devine imediat mai deștept.', answer:false, explain:'Modelul e antrenat dinainte și apoi rămâne „înghețat”. Unele aplicații rețin preferințe, dar asta nu înseamnă reantrenarea modelului.'},
+    {t:'recap', points:['Sistemul învață din foarte multe exemple etichetate: ghicește, compară, ajustează, repetă.','Calitatea datelor decide calitatea rezultatului: multe, corecte, variate, actuale.','După antrenare modelul e „înghețat” și nu știe ce s-a întâmplat după aceea.']}
   ]},
   { id: 'm1l4', title: 'AI-ul care creează', steps: [
-    {t:'info', title:'AI generativ', body:'<b>AI-ul generativ</b> creează conținut nou: texte, imagini, sunet, video, cod.<br><br>Instrumente cunoscute: <b>ChatGPT</b> (OpenAI), <b>Claude</b> (Anthropic), <b>Gemini</b> (Google), <b>Copilot</b> (Microsoft). Pentru imagini există generatoare separate sau incluse în aceste aplicații.'},
-    {t:'match', q:'Potrivește instrumentul cu ce face', pairs:[['ChatGPT, Claude, Gemini','Asistenți de conversație pentru text'],['Copilot în Word sau Excel','AI integrat în aplicațiile de birou'],['Generator de imagini','Creează o imagine dintr-o descriere'],['Transcriere automată','Transformă vorbirea în text']], explain:'Multe aplicații le combină pe toate, dar ideea de bază rămâne aceeași.'},
-    {t:'info', title:'Ce e nou', body:'Înainte, AI-ul mai mult <b>clasifica</b>: spam sau nu, pisică sau câine.<br><br>Acum AI-ul <b>produce</b> conținut. De aceea e util oricui scrie, citește sau organizează informații, adică aproape oricărui job de birou.'},
-    {t:'mcq', q:'Care sarcină e potrivită pentru un AI generativ?', options:['Să scrie prima variantă a unui anunț pentru un eveniment','Să decidă singur cine primește un împrumut','Să semneze un contract în numele tău','Să garanteze că o informație e adevărată'], answer:0, explain:'O primă variantă de text este punctul lui forte. Decizia, semnătura și verificarea rămân la tine.'},
-    {t:'tf', q:'Textele create de AI generativ sunt copiate cuvânt cu cuvânt dintr-o bază de date.', answer:false, explain:'Textul e generat cuvânt cu cuvânt, pe baza tiparelor învățate. Rareori poate semăna mult cu un text existent, așa că verifici înainte să-l publici.'}
+    {t:'info', title:'De la „sortează” la „creează”', guide:'Comută între cele două moduri și urmărește rezultatul.',
+      body:'Multă vreme, AI-ul mai mult <b>clasifica</b>: spam sau nu, pisică sau câine, plată normală sau suspectă. <b>AI-ul generativ</b> face altceva: <b>produce</b> conținut nou, care nu exista înainte.',
+      visual:{type:'toggle', options:[
+        {label:'AI care clasifică', input:'E-mail: „Ați câștigat 10.000 €! Apăsați aici.”', output:'Rezultat: SPAM (încredere 98%)'},
+        {label:'AI generativ', input:'Cerere: „Scrie o invitație scurtă la ședința de luni.”', output:'Bună ziua! Vă invităm luni, la ora 10:00, în sala de consiliu, la ședința de planificare. Vă rugăm să confirmați participarea până vineri.'}
+      ]}},
+    {t:'info', title:'Uneltele pe care le vei întâlni', guide:'Atinge fiecare unealtă.',
+      body:'Există multe instrumente, iar cele mai multe au o variantă gratuită, cu limite. Principiile din acest curs se aplică la toate.',
+      visual:{type:'reveal', layout:'grid', items:[
+        {icon:'💬', label:'ChatGPT', text:'Asistentul de conversație creat de OpenAI. A popularizat AI-ul generativ în 2022.'},
+        {icon:'💬', label:'Claude', text:'Asistentul de conversație creat de Anthropic, folosit mult pentru texte și documente lungi.'},
+        {icon:'💬', label:'Gemini', text:'Asistentul Google, integrat și în Gmail, Docs și celelalte servicii Google.'},
+        {icon:'🧩', label:'Copilot', text:'Asistentul Microsoft, integrat în Word, Excel, Outlook și Teams.'},
+        {icon:'🎨', label:'Generatoare de imagini', text:'Creează imagini dintr-o descriere în cuvinte. Multe sunt incluse direct în asistenții de mai sus.'},
+        {icon:'🎙️', label:'Transcriere', text:'Transformă vorbirea în text, de exemplu din înregistrarea unei ședințe.'}
+      ]}},
+    {t:'info', title:'Nu doar text', guide:'Asta se numește „multimodal”.',
+      body:'Asistenții de azi pot lucra cu mai multe tipuri de conținut. Poți să le arăți o poză cu un tabel și să le ceri să-l transforme în Excel, să încarci un PDF și să ceri un rezumat sau să le vorbești în loc să scrii.',
+      visual:{type:'compare',
+        left:{icon:'✅', title:'La ce e bun', lines:['Prima variantă a unui text','Rezumate și explicații','Idei și structuri','Reformulări și traduceri']},
+        right:{icon:'⚠️', title:'Unde trebuie atenție', lines:['Cifre, date, legi (verifici)','Decizii despre oameni','Informații foarte recente','Date personale (nu le introduci)']}}},
+    {t:'match', q:'Potrivește instrumentul cu ce face', pairs:[['ChatGPT, Claude, Gemini','Conversație și texte'],['Copilot în Word sau Excel','AI în aplicațiile de birou'],['Generator de imagini','Imagine dintr-o descriere'],['Transcriere automată','Vorbire transformată în text']], explain:'Multe aplicații le combină, dar ideea de bază rămâne.'},
+    {t:'sort', q:'Sarcină bună pentru AI generativ sau decizie care rămâne la om?', buckets:['🤖 Potrivită pentru AI','🧑 Rămâne la om'], items:[
+      {text:'Prima variantă a unui anunț', b:0},{text:'Idei de titluri pentru un newsletter', b:0},{text:'Aprobarea unui buget', b:1},
+      {text:'Rezumatul unui raport lung', b:0},{text:'Semnarea unui contract', b:1},{text:'Decizia de a angaja un candidat', b:1}
+    ], explain:'AI-ul pregătește, omul decide și răspunde.'},
+    {t:'mcq', q:'Colegul tău spune: „Am cerut AI-ului textul comunicatului și l-am trimis direct presei.” Ce ar fi trebuit să facă?', options:['Nimic, e în regulă','Să citească și să verifice textul (nume, date, cifre) înainte să-l trimită','Să ceară AI-ului să-l trimită singur','Să nu folosească deloc AI'], answer:1,
+      feedback:['Riscant. AI-ul poate inventa detalii sau poate schimba sensul.','Exact. AI-ul face prima variantă, omul verifică și răspunde.','Tot el ar fi răspunzător, și mai puțin controlat.','Nu e nevoie să renunțe. E nevoie să verifice.']},
+    {t:'tf', q:'Textele create de AI generativ sunt copiate cuvânt cu cuvânt dintr-o bază de date.', answer:false, explain:'Sunt generate cuvânt cu cuvânt, pe baza tiparelor învățate. Rareori pot semăna mult cu texte existente, așa că verifici înainte de publicare.'},
+    {t:'recap', points:['AI-ul generativ creează conținut nou: text, imagini, sunet, cod.','Principalele unelte sunt asistenții de conversație și AI-ul integrat în aplicațiile de birou.','E excelent pentru prima variantă. Verificarea și decizia rămân la tine.']}
   ]}
   ]
 },
 {
-  id: 'm2', title: 'Cum „gândește” un chatbot', subtitle: 'Ce se întâmplă când apeși Enter', color: '#2E6FB5', icon: 'chat',
+  id: 'm2', title: 'Cum „gândește” un chatbot', zone: 'Râul cuvintelor', subtitle: 'Ce se întâmplă când apeși Enter', color: '#12B5A6', icon: 'chat',
   lessons: [
   { id: 'm2l1', title: 'Ghicitorul de cuvinte', steps: [
     {t:'info', title:'Un model mare de limbaj', body:'Chatboturile precum ChatGPT sau Claude sunt construite pe un <b>model mare de limbaj</b> (în engleză <b>LLM</b>, Large Language Model).<br><br>Pe scurt: modelul a citit cantități enorme de text și a învățat să prezică ce cuvânt urmează cel mai probabil. Răspunsul ți-l construiește cuvânt cu cuvânt.'},
@@ -75,7 +193,7 @@ window.MODULES = [
   ]
 },
 {
-  id: 'm3', title: 'Primul tău prompt', subtitle: 'Cum ceri ca să primești ce vrei', color: '#149C9C', icon: 'pen',
+  id: 'm3', title: 'Primul tău prompt', zone: 'Podul prompturilor', subtitle: 'Cum ceri ca să primești ce vrei', color: '#1F8CC9', icon: 'pen',
   lessons: [
   { id: 'm3l1', title: 'Ce e un prompt', steps: [
     {t:'info', title:'Mesajul tău către AI', body:'<b>Promptul</b> este mesajul pe care i-l scrii AI-ului.<br><br>Regula de aur: scrie-i ca unui coleg nou, foarte deștept, care nu știe nimic despre tine, despre organizația ta sau despre situația ta.'},
@@ -108,7 +226,7 @@ window.MODULES = [
   ]
 },
 {
-  id: 'm4', title: 'AI la birou', subtitle: 'E-mailuri, documente, tabele, idei', color: '#2F9E5B', icon: 'briefcase',
+  id: 'm4', title: 'AI la birou', zone: 'Satul de lucru', subtitle: 'E-mailuri, documente, tabele, idei', color: '#FF8A3D', icon: 'briefcase',
   lessons: [
   { id: 'm4l1', title: 'E-mailuri și texte', steps: [
     {t:'info', title:'Prima variantă, în câteva secunde', body:'AI-ul e excelent la prima variantă a unui text: e-mailuri, adrese oficiale, anunțuri, răspunsuri la reclamații.<br><br><b>Tu aduci faptele și decizia, el aduce formularea.</b> Poate și să corecteze gramatica sau să schimbe tonul unui text scris de tine.'},
@@ -141,7 +259,7 @@ window.MODULES = [
   ]
 },
 {
-  id: 'm5', title: 'Când AI-ul greșește', subtitle: 'Halucinații, verificare, prejudecăți', color: '#E08A2E', icon: 'alert',
+  id: 'm5', title: 'Când AI-ul greșește', zone: 'Mlaștina iluziilor', subtitle: 'Halucinații, verificare, prejudecăți', color: '#E0457B', icon: 'alert',
   lessons: [
   { id: 'm5l1', title: 'Halucinațiile', steps: [
     {t:'info', title:'Invenții spuse cu încredere', body:'O <b>halucinație</b> este o informație inventată, prezentată cu încredere: o lege care nu există, un articol cu numărul greșit, o carte fictivă, o statistică fără sursă.<br><br>Apare pentru că modelul produce text <b>plauzibil</b>, nu text <b>verificat</b>.'},
@@ -174,7 +292,7 @@ window.MODULES = [
   ]
 },
 {
-  id: 'm6', title: 'Datele tale și siguranța', subtitle: 'Ce scrii, ce nu scrii, cum te protejezi', color: '#7A5BC7', icon: 'shield',
+  id: 'm6', title: 'Datele tale și siguranța', zone: 'Fortăreața datelor', subtitle: 'Ce scrii, ce nu scrii, cum te protejezi', color: '#7C4DDB', icon: 'shield',
   lessons: [
   { id: 'm6l1', title: 'Ce nu scrii într-un chatbot', steps: [
     {t:'info', title:'Ce scrii poate fi păstrat', body:'Ce scrii poate fi stocat pe serverele furnizorului. În funcție de setări, poate fi analizat pentru verificări sau folosit la antrenare.<br><br><b>Regula simplă:</b> nu scrie într-un chatbot nimic ce n-ai trimite pe e-mail unei firme externe.'},
@@ -207,7 +325,7 @@ window.MODULES = [
   ]
 },
 {
-  id: 'm7', title: 'AI Act pe înțelesul tuturor', subtitle: 'Regulile europene, pe scurt', color: '#1D4E6B', icon: 'scale',
+  id: 'm7', title: 'AI Act pe înțelesul tuturor', zone: 'Templul regulilor', subtitle: 'Regulile europene, pe scurt', color: '#0E6B4F', icon: 'scale',
   lessons: [
   { id: 'm7l1', title: 'Ce este AI Act', steps: [
     {t:'info', title:'Regulamentul european privind AI', body:'<b>AI Act</b> este Regulamentul (UE) 2024/1689 privind inteligența artificială, primul set cuprinzător de reguli pentru AI din lume.<br><br>Fiind regulament european, se aplică <b>direct</b> în România, fără o lege națională de transpunere. A intrat în vigoare în august 2024 și se aplică în etape.<br><br>În iulie 2026 a fost modificat prin Regulamentul (UE) 2026/1744, numit și „Digital Omnibus”, care a amânat unele termene și a adăugat interdicții noi.'},
