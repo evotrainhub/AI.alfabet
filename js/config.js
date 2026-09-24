@@ -6,13 +6,13 @@ window.CONFIG = {
 
   // Adresa aplicației web Google Apps Script (vezi README, pasul 2).
   // Cât timp e goală, aplicația merge normal, dar nu trimite nimic.
-  SHEETS_URL: '',
+  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbwjEVh8rPYsLxuufudyYiaxgCXTZLx9RoeK5MNGkYP4Xf8kyCTxkKf5NLXJ8tYvJAJKow/exec',
 
   SITE_URL: 'https://evotrainhub.com',
-  CONTACT_EMAIL: 'contact@evotrainhub.com',          // ← verifică adresa
+  CONTACT_EMAIL: 'evotrainhub@gmail.com',          // ← verifică adresa
 
   // Operatorul datelor (apare în pagina Confidențialitate)
-  OPERATOR: 'EvoTrainHub – [denumirea completă a PFA], CIF [completează]',  // ← completează
+  OPERATOR: 'EvoTrainHub – Boghian Ruxandra PFA, CUI 53185139',  // ← completează
 
   // Cât timp păstrezi adresele de e-mail
   RETENTION: 'până la retragerea acordului sau cel mult 3 ani de la ultima interacțiune',
