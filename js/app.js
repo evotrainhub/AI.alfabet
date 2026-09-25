@@ -342,6 +342,14 @@ function visualHTML(v) {
       return `<button class="tile" data-i="${i}">${it.icon ? `<span class="ic">${it.icon}</span>` : ''}${m ? `<span class="time">${m[1]}</span><span class="lb">${esc(m[2])}</span>` : `<span class="lb">${esc(it.label)}</span>`}</button>`;
     }).join('')}</div><div class="reveal-out" aria-live="polite"><p class="muted">Atinge un element.</p></div>`;
   }
+  if (v.type === 'nextword') {
+    return `<div class="vis nextword"><div class="nw-sent" aria-live="polite"><span class="nw-txt">${esc(v.start)}</span><span class="caret"></span></div>
+      <p class="nw-q">Ce cuvânt urmează? Alege una dintre variantele modelului:</p><div class="nw-opts"></div>${v.note ? `<small class="note">${esc(v.note)}</small>` : ''}</div>`;
+  }
+  if (v.type === 'tokens') {
+    return `<div class="vis tokens"><label class="field"><span>Scrie o frază și vezi cum o „taie” modelul</span><input type="text" class="tk-in" maxlength="140" value="${esc(v.text)}"></label>
+      <div class="tk-out" aria-live="polite"></div><p class="tk-count"></p>${v.note ? `<small class="note">${esc(v.note)}</small>` : ''}</div>`;
+  }
   if (v.type === 'compare') {
     const col = (c, cls) => `<div class="cmp ${cls}"><div class="cmp-h"><span class="ic">${c.icon || ''}</span>${esc(c.title)}</div><ul>${c.lines.map((l, i) => `<li style="--d:${i}">${esc(l)}</li>`).join('')}</ul></div>`;
     return `<div class="vis compare">${col(v.left, 'l')}<div class="vs">vs</div>${col(v.right, 'r')}</div>`;
@@ -384,9 +392,45 @@ function wireVisual(v, root) {
       root.querySelector('#stNext').textContent = k === v.items.length - 1 ? (v.cycle ? 'Încă o tură' : 'De la capăt') : 'Pasul următor';
     };
   }
+  if (v.type === 'nextword') {
+    let k = 0; const txt = root.querySelector('.nw-txt'), box = root.querySelector('.nw-opts'), q = root.querySelector('.nw-q');
+    const showOpts = () => {
+      if (k >= v.steps.length) {
+        txt.textContent += v.end || '';
+        q.textContent = 'Fraza e gata. Așa construiește un chatbot orice răspuns, cuvânt cu cuvânt.';
+        box.innerHTML = '<button type="button" class="btn small ghost nw-reset">Încă o dată</button>';
+        box.querySelector('.nw-reset').onclick = () => { k = 0; txt.textContent = v.start; q.textContent = 'Ce cuvânt urmează? Alege una dintre variantele modelului:'; showOpts(); };
+        return;
+      }
+      box.innerHTML = v.steps[k].map(o => `<button type="button" class="nw-opt" data-w="${esc(o.w)}"><span class="nw-bar" style="width:${o.p}%"></span><span class="nw-w">${esc(o.w)}</span><span class="nw-p">${o.p}%</span></button>`).join('');
+      box.querySelectorAll('.nw-opt').forEach(b => b.onclick = () => { txt.textContent += ' ' + b.dataset.w; k++; showOpts(); });
+    };
+    showOpts();
+  }
+  if (v.type === 'tokens') {
+    const inp = root.querySelector('.tk-in'), out = root.querySelector('.tk-out'), cnt = root.querySelector('.tk-count');
+    const cut = str => {
+      const parts = str.match(/\s*[^\s.,!?;:„”"()]+|\s*[.,!?;:„”"()]/g) || [];
+      const toks = [];
+      parts.forEach(p => {
+        const lead = p.match(/^\s*/)[0], w = p.slice(lead.length);
+        const size = /[ăâîșțşţĂÂÎȘȚ]/.test(w) ? 3 : 5;
+        if (w.length <= size + 1) { toks.push(lead + w); return; }
+        for (let i = 0; i < w.length; i += size) toks.push((i === 0 ? lead : '') + w.slice(i, i + size));
+      });
+      return toks;
+    };
+    const upd = () => {
+      const t = cut(inp.value);
+      out.innerHTML = t.map((x, i) => `<span class="tk c${i % 5}">${esc(x.replace(/ /g, '\u00a0'))}</span>`).join('');
+      const words = (inp.value.match(/[^\s]+/g) || []).length;
+      cnt.textContent = `${words} ${words === 1 ? 'cuvânt' : 'cuvinte'}, ${t.length} tokeni`;
+    };
+    inp.oninput = upd; upd();
+  }
   if (v.type === 'slider') {
     const sl = root.querySelector('#sl');
-    const upd = () => { const s = v.stops[+sl.value]; root.querySelector('#slBar').style.width = s.bar + '%'; root.querySelector('#slBar').style.setProperty('--p', s.bar); root.querySelector('#slVal').textContent = 'Precizie: ' + s.bar + '%'; root.querySelector('#slCap').textContent = s.caption; };
+    const upd = () => { const s = v.stops[+sl.value]; root.querySelector('#slBar').style.width = s.bar + '%'; root.querySelector('#slBar').style.setProperty('--p', s.bar); root.querySelector('#slVal').textContent = (v.barLabel || 'Precizie') + ': ' + s.bar + '%'; root.querySelector('#slCap').textContent = s.caption; };
     sl.oninput = upd; upd();
   }
   if (v.type === 'toggle') {
@@ -487,7 +531,7 @@ function openLesson(id) {
       h += `<h2>${esc(st.q)}</h2><p class="story">${st.segments.map(sg => typeof sg === 'string' ? esc(sg) : `<button class="phrase" data-k="${k++}">${esc(sg.p)}</button>`).join('')}</p>`;
     } else if (st.t === 'sort') {
       h += `<h2>${esc(st.q)}</h2><div class="sort"><div class="sort-card" id="sCard" aria-live="polite"></div><p class="sort-count" id="sCount"></p>
-        <div class="buckets">${st.buckets.map((b, i) => `<button class="bucket" data-b="${i}"><span>${esc(b)}</span><span class="cnt" id="bc${i}">0</span></button>`).join('')}</div></div>`;
+        <div class="buckets${st.buckets.length > 2 ? ' four' : ''}">${st.buckets.map((b, i) => `<button class="bucket" data-b="${i}"><span>${esc(b)}</span><span class="cnt" id="bc${i}">0</span></button>`).join('')}</div></div>`;
     } else if (st.t === 'flip') {
       h += `<h2>${esc(st.q)}</h2><div class="flips">${st.cards.map((c, i) => `<button class="flip" data-i="${i}" aria-label="${esc(c.front)}. Atinge ca să întorci."><span class="fi"><span class="ff">${esc(c.front)}</span><span class="fb2 ${c.tag === 'Mit' ? 'myth' : 'fact'}"><b>${esc(c.tag)}</b>${esc(c.back)}</span></span></button>`).join('')}</div>`;
     }
@@ -524,7 +568,7 @@ function openLesson(id) {
     }
     if (st.t === 'sort') {
       foot.dataset.mode = 'wait'; footer('wait', null, { hint: 'Alege categoria pentru fiecare cartonaș.' });
-      const items = shuffle(st.items); let k = 0, errs = 0; const cnt = [0, 0, 0];
+      const items = shuffle(st.items); let k = 0, errs = 0; const cnt = st.buckets.map(() => 0);
       const showCard = () => {
         $('#sCard').className = 'sort-card pop'; $('#sCard').textContent = items[k].text;
         $('#sCount').textContent = `${k + 1} din ${items.length}`;
