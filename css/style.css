@@ -428,3 +428,9 @@ dialog::backdrop{background:rgba(14,51,42,.55)}
 @media (max-width:520px){.reveal.pyramid .tile:nth-child(1){width:70%}.reveal.pyramid .tile:nth-child(2){width:80%}.reveal.pyramid .tile:nth-child(3){width:90%}}
 .buckets.four{grid-template-columns:1fr 1fr}
 .buckets.four .bucket{padding:14px 10px;font-size:15px}
+
+/* abonare la final */
+.nl-card{background:var(--surface);border:2px solid var(--line);border-left:6px solid var(--teal);border-radius:20px;padding:22px;margin:26px 0 0}
+.nl-card h3{margin:0 0 6px;font-size:21px;color:var(--jungle);font-weight:600}
+.nl-card p{margin:0 0 8px;color:var(--muted)}
+.nl-card .field{max-width:420px}
