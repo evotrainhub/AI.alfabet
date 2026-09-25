@@ -120,7 +120,7 @@ function renderHome() {
   <div class="facts">
     <div class="fact"><b>7 module</b><span>de la „ce este AI” până la AI Act</span></div>
     <div class="fact"><b>28 de lecții</b><span>de 5–7 minute, cu simulări și exerciții</span></div>
-    <div class="fact"><b>Certificat</b><span>de parcurgere, la final</span></div>
+    <div class="fact"><b>Certificat</b><span>de absolvire, la final</span></div>
   </div>
   <h2 class="sec">Ce vei învăța</h2>
   <div class="mods">
@@ -322,7 +322,7 @@ function initGate() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { $('#gErr').textContent = 'Verifică adresa de e-mail. Pare incompletă.'; return; }
     const mkt = $('#gMkt').checked;
     send({ type: 'email', email, marketing: mkt, consentText: mkt ? $('#gMktTxt').textContent.trim() : '', source: 'ai-pas-cu-pas', hp: $('#gHp').value });
-    S.email = true; save(); $('#gate').close();
+    S.email = true; S.emailAddr = email; if (mkt) S.mkt = true; save(); $('#gate').close();
     toast('Gata! Ai acces la toate modulele.');
     if (pendingLesson) go('#/lectie/' + pendingLesson); else route();
   };
@@ -753,8 +753,8 @@ function renderPrivacy() {
     <ul>
       <li><b>Chestionarul de la început</b> (sectorul, domeniul, cât folosești AI, ce te interesează) e anonim. Nu cerem nume și nu legăm răspunsurile de adresa de e-mail. Le folosim doar statistic, ca să facem materiale mai potrivite.</li>
       <li><b>Adresa de e-mail</b>, cerută după primul modul, o folosim ca să-ți dăm acces la restul modulelor și ca să-ți trimitem un singur e-mail de bun venit, cu linkul aplicației.</li>
-      <li><b>Anunțurile despre cursuri</b> ți le trimitem doar dacă ai bifat separat această opțiune. Bifa nu e obligatorie pentru a folosi aplicația. Te poți dezabona oricând, din orice mesaj sau scriindu-ne.</li>
-      <li><b>Progresul tău</b> (lecțiile terminate, punctele) rămâne doar în browserul tău. Nu îl primim.</li>
+      <li><b>Anunțurile despre cursuri și noutățile din domeniul AI</b> ți le trimitem doar dacă ai bifat separat această opțiune sau ai ales, la final, să primești noutăți. Bifa nu e obligatorie pentru a folosi aplicația. Te poți dezabona oricând, din orice mesaj sau scriindu-ne.</li>
+      <li><b>Progresul tău</b> (lecțiile terminate, punctele) rămâne doar în browserul tău. Nu îl primim. Tot acolo păstrăm și adresa ta de e-mail, ca să nu fie nevoie să o scrii din nou.</li>
       <li><b>Numele de pe certificat</b> e folosit doar în browserul tău, ca să genereze imaginea. Nu îl primim.</li>
     </ul>
     <h2>Temeiul legal și durata</h2>
@@ -775,16 +775,36 @@ function renderCert() {
     app.innerHTML = `<div class="page cert-wrap"><h1 class="sec" style="font-size:28px">Certificatul tău</h1><p>Mai ai ${left} ${left === 1 ? 'lecție' : 'lecții'} până la certificat.</p><a class="btn" href="#/drum">Înapoi la drum</a></div>`;
     return;
   }
-  app.innerHTML = `<div class="cert-wrap"><h1 class="sec" style="font-size:28px;margin-top:10px">Certificatul tău</h1>
+  if (!S.certNo) {
+    const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    S.certNo = 'AIP-' + new Date().getFullYear() + '-' + Array.from({ length: 5 }, () => abc[Math.floor(Math.random() * abc.length)]).join('');
+    S.certDate = new Date().toISOString().slice(0, 10); save();
+  }
+  const signer = C.CERT_SIGNER_NAME || 'Ruxandra Boghian';
+  const signerTitle = C.CERT_SIGNER_TITLE || 'Conf. univ. dr. habil. Ruxandra Boghian';
+  const signerRole = C.CERT_SIGNER_ROLE || 'Fondator EvoTrainHub';
+  const showNl = !S.mkt && !S.nlDone;
+  app.innerHTML = `<div class="cert-wrap"><h1 class="sec" style="font-size:28px;margin-top:10px">Certificatul tău de absolvire</h1>
     <p style="color:var(--muted);margin:0">Scrie numele exact cum vrei să apară. Numele rămâne pe dispozitivul tău, nu îl primim.</p>
     <label class="field"><span>Nume și prenume</span><input id="cName" maxlength="60" autocomplete="name" value="${esc(S.certName || '')}"></label>
     <canvas id="cv" width="1600" height="1130" aria-label="Previzualizare certificat"></canvas>
     <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" id="dl">Descarcă certificatul (PNG)</button><a class="btn ghost" href="#/drum">Înapoi la drum</a></div>
+    ${showNl ? `<section class="nl-card" id="nl">
+      <h3>Rămâi la curent cu noutățile din AI</h3>
+      <p>Vrei să primești de la EvoTrainHub, pe e-mail, noutăți despre cursurile noastre și despre schimbările importante din domeniul inteligenței artificiale? Te poți dezabona oricând, din orice mesaj.</p>
+      <label class="field"><span>Adresa de e-mail</span><input type="email" id="nlEmail" autocomplete="email" inputmode="email" value="${esc(S.emailAddr || '')}"></label>
+      <input type="text" id="nlHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="fine" id="nlTxt">Apăsând „Da, vreau noutățile”, ești de acord să primești de la EvoTrainHub e-mailuri despre cursuri și noutăți din domeniul AI. Detalii în <a href="#/confidentialitate">politica de confidențialitate</a>.</p>
+      <p class="err" id="nlErr" role="alert"></p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><button class="btn" id="nlYes">Da, vreau noutățile</button><button class="link" id="nlNo">Nu, mulțumesc</button></div>
+    </section>` : ''}
     ${ctaBox()}</div>`;
-  const cv = $('#cv'), ctx = cv.getContext('2d'), logo = new Image();
-  let logoOk = true;
+  const cv = $('#cv'), ctx = cv.getContext('2d'), logo = new Image(), sig = new Image();
+  const SIG_SRC = C.CERT_SIGNATURE_IMAGE || 'assets/semnatura.png';
+  let logoOk = true, sigOk = !!SIG_SRC;
   logo.src = 'assets/logo.png';
-  const F = 'Lexend, system-ui, sans-serif';
+  if (sigOk) sig.src = SIG_SRC;
+  const F = 'Lexend, system-ui, sans-serif', SCRIPT = '"Great Vibes", "Segoe Script", cursive';
   const draw = () => {
     const name = $('#cName').value.trim() || 'Numele tău';
     const W = 1600, H = 1130;
@@ -792,35 +812,60 @@ function renderCert() {
     ctx.fillStyle = '#E1F4E8'; ctx.fillRect(0, 0, W, 14); ctx.fillRect(0, H - 14, W, 14);
     ctx.strokeStyle = '#0E6B4F'; ctx.lineWidth = 3; ctx.strokeRect(50, 50, W - 100, H - 100);
     ctx.strokeStyle = '#22A55B'; ctx.lineWidth = 1.5; ctx.strokeRect(64, 64, W - 128, H - 128);
-    if (logoOk && logo.complete && logo.naturalWidth) ctx.drawImage(logo, W / 2 - 80, 110, 160, 160);
+    if (logoOk && logo.complete && logo.naturalWidth) ctx.drawImage(logo, W / 2 - 75, 100, 150, 150);
     ctx.textAlign = 'center'; ctx.fillStyle = '#0E6B4F';
-    ctx.font = `600 64px ${F}`; ctx.fillText('Certificat de parcurgere', W / 2, 350);
-    ctx.fillStyle = '#5A7568'; ctx.font = `400 30px ${F}`; ctx.fillText('Se acordă', W / 2, 440);
+    ctx.font = `600 62px ${F}`; ctx.fillText('Certificat de absolvire', W / 2, 330);
+    ctx.fillStyle = '#5A7568'; ctx.font = `400 30px ${F}`; ctx.fillText('Se acordă', W / 2, 410);
     let size = 84; ctx.font = `600 ${size}px ${F}`;
     while (ctx.measureText(name).width > W - 320 && size > 40) { size -= 4; ctx.font = `600 ${size}px ${F}`; }
-    ctx.fillStyle = '#12332A'; ctx.fillText(name, W / 2, 545);
-    ctx.strokeStyle = '#FFC23D'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(W / 2 - 260, 580); ctx.lineTo(W / 2 + 260, 580); ctx.stroke();
+    ctx.fillStyle = '#12332A'; ctx.fillText(name, W / 2, 510);
+    ctx.strokeStyle = '#FFC23D'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(W / 2 - 260, 545); ctx.lineTo(W / 2 + 260, 545); ctx.stroke();
     ctx.fillStyle = '#12332A'; ctx.font = `400 32px ${F}`;
-    ctx.fillText(`pentru parcurgerea programului „${C.APP_NAME}”`, W / 2, 660);
-    ctx.fillStyle = '#5A7568'; ctx.font = `400 26px ${F}`;
-    ctx.fillText('7 module și 28 de lecții de alfabetizare în domeniul inteligenței artificiale:', W / 2, 720);
-    ctx.fillText('noțiuni de bază, formularea prompturilor, utilizare la birou, verificarea informațiilor,', W / 2, 760);
-    ctx.fillText('protecția datelor și Regulamentul (UE) 2024/1689 (AI Act).', W / 2, 800);
-    const date = new Date().toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
-    ctx.textAlign = 'left'; ctx.fillStyle = '#12332A'; ctx.font = `600 26px ${F}`; ctx.fillText(date, 180, 950);
-    ctx.fillStyle = '#5A7568'; ctx.font = `400 22px ${F}`; ctx.fillText('Data', 180, 985);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#12332A'; ctx.font = `600 26px ${F}`; ctx.fillText(C.CERT_SIGNATURE, W - 180, 950);
-    ctx.fillStyle = '#5A7568'; ctx.font = `400 22px ${F}`; ctx.fillText(C.CERT_SIGNATURE_ROLE, W - 180, 985);
+    ctx.fillText(`pentru absolvirea programului „${C.APP_NAME}”`, W / 2, 620);
+    ctx.fillStyle = '#5A7568'; ctx.font = `400 25px ${F}`;
+    ctx.fillText('7 module și 28 de lecții de alfabetizare în domeniul inteligenței artificiale:', W / 2, 675);
+    ctx.fillText('noțiuni de bază, formularea prompturilor, utilizare la birou, verificarea informațiilor,', W / 2, 712);
+    ctx.fillText('protecția datelor și Regulamentul (UE) 2024/1689 (AI Act).', W / 2, 749);
+    // stânga: data și numărul
+    const date = new Date(S.certDate + 'T12:00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+    ctx.textAlign = 'left'; ctx.fillStyle = '#12332A'; ctx.font = `600 26px ${F}`; ctx.fillText(date, 170, 940);
+    ctx.strokeStyle = '#9DB5A8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(170, 958); ctx.lineTo(560, 958); ctx.stroke();
+    ctx.fillStyle = '#5A7568'; ctx.font = `400 21px ${F}`; ctx.fillText('Data absolvirii', 170, 990);
+    ctx.fillText('Nr. ' + S.certNo, 170, 1022);
+    // dreapta: semnătura
+    const R = W - 170, sx = R - 390;
+    if (sigOk && sig.complete && sig.naturalWidth) {
+      let w = 430, h = w * sig.naturalHeight / sig.naturalWidth;
+      if (h > 125) { h = 125; w = h * sig.naturalWidth / sig.naturalHeight; }
+      ctx.drawImage(sig, R - 195 - w / 2, 952 - h, w, h);
+    } else {
+      ctx.textAlign = 'center'; ctx.fillStyle = '#0E3F5C'; ctx.font = `400 64px ${SCRIPT}`; ctx.fillText(signer, R - 195, 935);
+    }
+    ctx.strokeStyle = '#9DB5A8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sx, 958); ctx.lineTo(R, 958); ctx.stroke();
+    ctx.textAlign = 'right'; ctx.fillStyle = '#12332A'; ctx.font = `600 23px ${F}`; ctx.fillText(signerTitle, R, 990);
+    ctx.fillStyle = '#5A7568'; ctx.font = `400 21px ${F}`; ctx.fillText(signerRole, R, 1022);
   };
   logo.onload = draw; logo.onerror = () => { logoOk = false; draw(); };
-  (document.fonts ? document.fonts.ready : Promise.resolve()).then(draw);
+  if (sigOk) { sig.onload = draw; sig.onerror = () => { sigOk = false; draw(); }; }
+  const fontsReady = document.fonts ? Promise.all([document.fonts.load(`400 64px "Great Vibes"`), document.fonts.load(`600 26px Lexend`)]).catch(() => {}).then(() => document.fonts.ready) : Promise.resolve();
+  draw(); fontsReady.then(draw);
   $('#cName').oninput = () => { S.certName = $('#cName').value; save(); draw(); };
   $('#dl').onclick = () => {
     if (!$('#cName').value.trim()) { toast('Scrie întâi numele.'); $('#cName').focus(); return; }
-    const done = blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'certificat-ai-pas-cu-pas.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+    const done = blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'certificat-absolvire-ai-pas-cu-pas.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
     try { cv.toBlob(b => b ? done(b) : fail()); } catch { fail(); }
-    function fail() { logoOk = false; draw(); try { cv.toBlob(b => b && done(b)); } catch { toast('Descărcarea nu a mers. Încearcă din alt browser.'); } }
+    function fail() { logoOk = false; sigOk = false; draw(); try { cv.toBlob(b => b && done(b)); } catch { toast('Descărcarea nu a mers. Încearcă din alt browser.'); } }
   };
+  if (showNl) {
+    $('#nlNo').onclick = () => { S.nlDone = true; save(); $('#nl').remove(); };
+    $('#nlYes').onclick = () => {
+      const email = $('#nlEmail').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { $('#nlErr').textContent = 'Verifică adresa de e-mail. Pare incompletă.'; return; }
+      send({ type: 'email', email, marketing: true, consentText: $('#nlTxt').textContent.trim(), source: 'certificat-newsletter', hp: $('#nlHp').value });
+      S.mkt = true; S.nlDone = true; S.emailAddr = email; save();
+      $('#nl').innerHTML = '<h3>Mulțumim!</h3><p>Te-ai abonat la noutățile EvoTrainHub. Te poți dezabona oricând, din orice mesaj primit.</p>';
+    };
+  }
   try { if (!sessionStorage.getItem('certConfetti')) { sessionStorage.setItem('certConfetti', '1'); confetti(); } } catch {}
 }
 

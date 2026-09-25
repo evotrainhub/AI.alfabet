@@ -132,7 +132,7 @@ window.MODULES = [
         {label:'AI care clasifică', input:'E-mail: „Ați câștigat 10.000 €! Apăsați aici.”', output:'Rezultat: SPAM (încredere 98%)'},
         {label:'AI generativ', input:'Cerere: „Scrie o invitație scurtă la ședința de luni.”', output:'Bună ziua! Vă invităm luni, la ora 10:00, în sala de consiliu, la ședința de planificare. Vă rugăm să confirmați participarea până vineri.'}
       ]}},
-    {t:'info', title:'Uneltele pe care le vei întâlni', guide:'Atinge fiecare unealtă.',
+    {t:'info', title:'Instrumentele pe care le vei întâlni', guide:'Atinge fiecare instrument.',
       body:'Există multe instrumente, iar cele mai multe au o variantă gratuită, cu limite. Principiile din acest curs se aplică la toate.',
       visual:{type:'reveal', layout:'grid', items:[
         {icon:'💬', label:'ChatGPT', text:'Asistentul de conversație creat de OpenAI. A popularizat AI-ul generativ în 2022.'},
@@ -155,7 +155,7 @@ window.MODULES = [
     {t:'mcq', explain:'Un text generat poate conține greșeli greu de observat: un nume scris greșit, o dată inventată, o cifră rotunjită, o promisiune pe care organizația nu a făcut-o. Într-un comunicat de presă, greșeala devine publică și e greu de corectat. AI-ul scrie prima variantă, omul verifică faptele și își asumă textul.', q:'Colegul tău spune: „Am cerut AI-ului textul comunicatului și l-am trimis direct presei.” Ce ar fi trebuit să facă?', options:['Nimic, e în regulă','Să citească și să verifice textul (nume, date, cifre) înainte să-l trimită','Să ceară AI-ului să-l trimită singur','Să nu folosească deloc AI'], answer:1,
       feedback:['Riscant. AI-ul poate inventa detalii sau poate schimba sensul.','Exact. AI-ul face prima variantă, omul verifică și răspunde.','Tot el ar fi răspunzător, și mai puțin controlat.','Nu e nevoie să renunțe. E nevoie să verifice.']},
     {t:'tf', q:'Textele create de AI generativ sunt copiate cuvânt cu cuvânt dintr-o bază de date.', answer:false, explain:'Modelul generează textul cuvânt cu cuvânt, pe baza tiparelor învățate din foarte multe texte, nu copiază o pagină anume. Rareori, mai ales la texte foarte cunoscute, poate reproduce aproape identic fragmente existente. De aceea, pentru materiale publice, verifici și originalitatea.'},
-    {t:'recap', points:['AI-ul generativ creează conținut nou: text, imagini, sunet, cod.','Principalele unelte sunt asistenții de conversație și AI-ul integrat în aplicațiile de birou.','E excelent pentru prima variantă. Verificarea și decizia rămân la tine.']}
+    {t:'recap', points:['AI-ul generativ creează conținut nou: text, imagini, sunet, cod.','Principalele instrumente sunt asistenții de conversație și AI-ul integrat în aplicațiile de birou.','E excelent pentru prima variantă. Verificarea și decizia rămân la tine.']}
   ]}
   ]
 },
@@ -750,7 +750,7 @@ window.MODULES = [
     {t:'info', title:'Ce faci când ceva pare suspect', guide:'Patru pași care opresc majoritatea fraudelor.',
       body:'Semnele de alarmă sunt aproape mereu aceleași: <b>urgență mare</b>, <b>cereri de bani sau de date</b>, <b>cerere de a păstra secretul</b> și <b>un canal neobișnuit</b>.',
       visual:{type:'steps', items:[
-        {icon:'✋', label:'Oprește-te', text:'Urgența e unealta principală a escrocilor. Câteva minute de pauză nu strică nimic.'},
+        {icon:'✋', label:'Oprește-te', text:'Urgența e instrumentul principal al escrocilor. Câteva minute de pauză nu strică nimic.'},
         {icon:'📱', label:'Verifică pe alt canal', text:'Suni persoana pe numărul pe care îl știi deja, nu pe cel din mesaj.'},
         {icon:'🗣️', label:'Întreabă', text:'Pune o întrebare la care doar persoana reală știe răspunsul sau folosește cuvântul-cod al familiei.'},
         {icon:'🚨', label:'Raportează', text:'Anunți banca, departamentul IT sau autoritățile. La serviciu, anunți imediat, chiar dacă ai greșit deja.'}

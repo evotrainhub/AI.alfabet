@@ -7,7 +7,7 @@ window.AVATARS = [
   { id: 'ioana',  name: 'Ioana',  tag: 'Organizată, îi plac listele clare',     skin: '#C98E66', hair: '#1E1A18', style: 'bun',   shirt: '#FF8A3D', pants: '#2F4858', glasses: true },
   { id: 'radu',   name: 'Radu',   tag: 'Sceptic, verifică tot de două ori',     skin: '#8D5A3B', hair: '#141414', style: 'curly', shirt: '#12B5A6', pants: '#3B3B4F' },
   { id: 'elena',  name: 'Elena',  tag: 'Cu experiență, învață toată viața',     skin: '#F0D0B4', hair: '#BDBDBD', style: 'bob',   shirt: '#E0457B', pants: '#4A4A5A', glasses: true },
-  { id: 'andrei', name: 'Andrei', tag: 'Explorator, încearcă orice unealtă nouă', skin: '#D9A47E', hair: '#7A4A22', style: 'beard', shirt: '#7C4DDB', pants: '#2F4858', hat: true }
+  { id: 'andrei', name: 'Andrei', tag: 'Explorator, încearcă orice instrument nou', skin: '#D9A47E', hair: '#7A4A22', style: 'beard', shirt: '#7C4DDB', pants: '#2F4858', hat: true }
 ];
 
 window.avatarSVG = function (a, opts) {
