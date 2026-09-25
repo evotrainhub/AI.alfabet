@@ -197,24 +197,26 @@ function renderGuidePicker() {
 
 /* ---------------- harta ---------------- */
 const OFFS = [0, .7, 1, .7, 0, -.7, -1, -.7];
-const LEAF = (a, b, c) => `<svg viewBox="0 0 120 170" aria-hidden="true">
-  <path d="M60 168 C62 120 56 70 60 18" stroke="#0E6B4F" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-  <path d="M60 42 C22 30 4 62 10 94 C40 90 60 70 60 42Z" fill="${a}"/>
-  <path d="M60 74 C98 58 118 88 112 120 C84 118 62 100 60 74Z" fill="${b}"/>
-  <path d="M60 110 C28 104 14 130 22 158 C46 152 60 136 60 110Z" fill="${c}"/>
-  <g stroke="rgba(255,255,255,.75)" stroke-width="1.6" fill="rgba(255,255,255,.9)">
-    <path d="M58 48 L34 62 L22 62" fill="none"/><circle cx="22" cy="62" r="2.4"/>
-    <path d="M62 80 L86 92 L98 92" fill="none"/><circle cx="98" cy="92" r="2.4"/>
-    <path d="M58 116 L40 130" fill="none"/><circle cx="40" cy="130" r="2.4"/>
-  </g></svg>`;
-const LEAF_SETS = [['#22A55B', '#8BD346', '#12B5A6'], ['#12B5A6', '#22A55B', '#8BD346'], ['#8BD346', '#12B5A6', '#22A55B']];
+const CTREE = (c) => `<svg viewBox="0 0 120 190" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <g stroke="${c}" stroke-opacity=".55" stroke-width="2.4">
+    <path d="M60 186 V108" stroke-width="4"/><path d="M34 186 H86" stroke-opacity=".3"/>
+    <path d="M60 140 H30 V98"/><path d="M60 122 H92 V84"/><path d="M60 108 V62"/>
+    <path d="M30 98 L18 86 V62"/><path d="M30 98 H44 V72"/><path d="M92 84 H104 V54"/><path d="M92 84 L78 70 V50"/>
+    <path d="M60 62 L48 50 V30"/><path d="M60 62 L72 50 V20"/>
+  </g>
+  <g stroke="#fff" stroke-width="2">
+    <circle cx="18" cy="60" r="6" fill="${c}"/><circle cx="44" cy="70" r="5" fill="#8BD346"/><circle cx="104" cy="52" r="6" fill="${c}"/>
+    <circle cx="78" cy="48" r="5" fill="#12B5A6"/><circle cx="48" cy="28" r="5" fill="#FFC23D"/><circle cx="72" cy="18" r="7" fill="${c}"/>
+  </g>
+  <g fill="${c}" fill-opacity=".45"><circle cx="60" cy="140" r="3"/><circle cx="60" cy="122" r="3"/><circle cx="30" cy="98" r="3"/><circle cx="92" cy="84" r="3"/><circle cx="60" cy="62" r="3"/></g>
+</svg>`;
 
 function renderMap() {
   if (!S.avatar) return go('#/ghid');
   const doneN = ALL.filter(l => S.done[l.id]).length;
   const cur = ALL.findIndex(l => !S.done[l.id]);
   const me = myAvatar();
-  let html = `<div class="map-head"><div><h1>Drumul tău prin junglă</h1><p>${doneN === 0 ? `${esc(me.name)} te așteaptă la prima lecție.` : doneN === ALL.length ? 'Ai străbătut toată jungla. Felicitări!' : 'Continuă de unde ai rămas.'}</p>
+  let html = `<div class="map-head"><div><h1>Drumul tău prin jungla tehnologică</h1><p>${doneN === 0 ? `${esc(me.name)} te așteaptă la prima lecție.` : doneN === ALL.length ? 'Ai străbătut toată jungla. Felicitări!' : 'Continuă de unde ai rămas.'}</p>
       <button class="link small" id="chg">Schimbă ghidul</button></div>
     <div class="overall"><small>${doneN} din ${ALL.length} lecții</small><div class="bar"><div style="width:${doneN / ALL.length * 100}%"></div></div></div></div>
     <div class="path" id="path"><svg class="trail" id="trail" aria-hidden="true"></svg>`;
@@ -222,9 +224,8 @@ function renderMap() {
     const mDone = m.lessons.filter(l => S.done[l.id]).length;
     const firstIdx = ALL.findIndex(l => l.mi === mi);
     const unitLocked = !isUnlocked(ALL[firstIdx]);
-    const ls = LEAF_SETS[mi % 3];
     html += `<section class="unit${unitLocked ? ' locked' : ''}" style="--mc:${m.color}" aria-label="Modulul ${mi + 1}: ${esc(m.title)}">
-      <div class="deco deco-l">${LEAF(...ls)}</div><div class="deco deco-r">${LEAF(ls[2], ls[0], ls[1])}</div>
+      <div class="deco deco-l">${CTREE(m.color)}</div><div class="deco deco-r">${CTREE(m.color)}</div>
       <div class="unit-banner"><i>${I[m.icon]}</i><div class="t"><small>Modulul ${mi + 1}: ${esc(m.zone || '')}</small><b>${esc(m.title)}</b></div><span class="p">${mDone}/${m.lessons.length}</span></div>
       <div class="nodes">`;
     m.lessons.forEach(l0 => {
@@ -601,10 +602,9 @@ function openLesson(id) {
         if (isRight) b.classList.add('good'); else if (b.classList.contains('sel')) b.classList.add('wrong');
       });
     }
-    const expl = custom || st.explain || '';
     if (ok) {
       if (!queue[pos].tries) firstTry++;
-      footer('good', { title: ['Corect!', 'Foarte bine!', 'Exact!', 'Bravo!'][Math.floor(Math.random() * 4)], text: esc(expl) });
+      footer('good', { title: ['Corect!', 'Foarte bine!', 'Exact!', 'Bravo!'][Math.floor(Math.random() * 4)], text: [custom, st.explain].filter(Boolean).map(t => esc(t)).join('<br><br>') });
     } else {
       mistakes++;
       const again = queue[pos].tries < 2;
@@ -613,7 +613,7 @@ function openLesson(id) {
       if (st.t === 'order') ans = `<strong style="display:block;margin-top:4px">Ordinea corectă:</strong>${correctText}`;
       else if (st.t === 'spot') ans = 'Cele marcate cu verde punctat îți scăpaseră.';
       else ans = `Răspuns corect: <strong>${esc(correctText)}</strong>`;
-      footer('bad', { title: 'Nu chiar.', text: (custom ? esc(custom) + '<br>' : '') + ans + (!custom && st.explain ? '<br>' + esc(st.explain) : (st.t === 'spot' && st.explain ? '<br>' + esc(st.explain) : '')) + (again ? '<br><i>Revenim la întrebare la final.</i>' : '') });
+      footer('bad', { title: 'Nu chiar.', text: (custom ? esc(custom) + '<br>' : '') + ans + (st.explain ? '<br><br>' + esc(st.explain) : '') + (again ? '<br><i>Revenim la întrebare la final.</i>' : '') });
     }
   }
 
