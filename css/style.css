@@ -400,3 +400,31 @@ dialog::backdrop{background:rgba(14,51,42,.55)}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--jungle);color:#fff;
   padding:12px 18px;border-radius:14px;opacity:0;transition:.2s;z-index:80;pointer-events:none;max-width:90vw}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ghicitorul de cuvinte */
+.nw-sent{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:16px 18px;font-size:20px;font-weight:500;min-height:64px}
+.nw-q{margin:12px 0 8px;font-size:15px;color:var(--muted)}
+.nw-opts{display:flex;flex-direction:column;gap:8px}
+.nw-opt{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:10px 14px;font-size:16px;text-align:left}
+.nw-bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(18,181,166,.28),rgba(139,211,70,.28));z-index:0}
+.nw-w,.nw-p{position:relative;z-index:1}
+.nw-w{flex:1;font-weight:600}
+.nw-p{font-size:14px;color:var(--muted);font-weight:600}
+.nw-opt:hover{border-color:var(--teal)}
+/* tokenizator */
+.tokens .field{margin:0 0 10px}
+.tk-out{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px;min-height:56px}
+.tk{padding:4px 6px;border-radius:7px;font-size:16px;white-space:pre}
+.tk.c0{background:#D6F2DF}.tk.c1{background:#D2F1EE}.tk.c2{background:#FFF0C7}.tk.c3{background:#FFE1CC}.tk.c4{background:#E9DDFB}
+.tk-count{margin:8px 0 0;font-weight:600;color:var(--jungle);font-size:15px}
+/* piramida riscurilor */
+.reveal.pyramid{grid-template-columns:1fr;justify-items:center;gap:6px}
+.reveal.pyramid .tile{flex-direction:row;justify-content:center;color:#fff;border:0;border-bottom:4px solid rgba(0,0,0,.18)}
+.reveal.pyramid .tile:nth-child(1){width:42%;background:#D63A3A}
+.reveal.pyramid .tile:nth-child(2){width:62%;background:#F07A2A}
+.reveal.pyramid .tile:nth-child(3){width:82%;background:#E8B21A;color:#3A2A00}
+.reveal.pyramid .tile:nth-child(4){width:100%;background:#22A55B}
+.reveal.pyramid .tile.on{box-shadow:0 0 0 4px var(--ink)}
+@media (max-width:520px){.reveal.pyramid .tile:nth-child(1){width:70%}.reveal.pyramid .tile:nth-child(2){width:80%}.reveal.pyramid .tile:nth-child(3){width:90%}}
+.buckets.four{grid-template-columns:1fr 1fr}
+.buckets.four .bucket{padding:14px 10px;font-size:15px}
