@@ -6,7 +6,7 @@ window.CONFIG = {
 
   // Adresa aplicației web Google Apps Script (vezi README, pasul 2).
   // Cât timp e goală, aplicația merge normal, dar nu trimite nimic.
-  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbwjEVh8rPYsLxuufudyYiaxgCXTZLx9RoeK5MNGkYP4Xf8kyCTxkKf5NLXJ8tYvJAJKow/exec',
+  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbzl8u2rAFA3PMAWXERn_ug43DNO247ycxNcamQLUQNYCV_FJ4D2N19K-aazNL8eG8FF/exec',
 
   SITE_URL: 'https://evotrainhub.com',
   CONTACT_EMAIL: 'evotrainhub@gmail.com',          // ← verifică adresa
