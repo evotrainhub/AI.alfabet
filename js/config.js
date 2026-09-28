@@ -9,6 +9,9 @@ window.CONFIG = {
   SHEETS_URL: 'https://script.google.com/macros/s/AKfycbzl8u2rAFA3PMAWXERn_ug43DNO247ycxNcamQLUQNYCV_FJ4D2N19K-aazNL8eG8FF/exec',
 
   SITE_URL: 'https://evotrainhub.com',
+  COURSES_URL: 'https://evotrainhub.com/cursuri-online',   // cursurile online
+  CONTACT_URL: 'https://evotrainhub.com/contact',          // cerere de training pentru echipă
+  APP_URL: 'https://evotrainhub.github.io/AI.alfabet/',    // adresa publică, pentru „Trimite unui coleg”
   CONTACT_EMAIL: 'evotrainhub@gmail.com',          // ← verifică adresa
 
   // Operatorul datelor (apare în pagina Confidențialitate)
@@ -21,6 +24,6 @@ window.CONFIG = {
   CERT_SIGNATURE: 'EvoTrainHub',
   CERT_SIGNATURE_ROLE: 'Program de alfabetizare în domeniul AI',
 
-  // Numărul de module care se pot parcurge fără e-mail
+  // E-mailul e opțional: invitația apare o singură dată, după primul modul
   FREE_MODULES: 1
 };
