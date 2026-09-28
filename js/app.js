@@ -38,7 +38,7 @@ const ALL = [];
 M.forEach((m, mi) => m.lessons.forEach((l, li) => ALL.push(Object.assign({}, l, { m, mi, li, idx: ALL.length }))));
 const byId = id => ALL.find(l => l.id === id);
 const isUnlocked = l => l.idx === 0 || !!S.done[ALL[l.idx - 1].id];
-const needsEmail = l => l.mi >= (C.FREE_MODULES || 1) && !S.email;
+const needsEmail = () => false;   // e-mailul e opțional; invitația apare o dată, după primul modul
 const moduleDone = mi => M[mi].lessons.every(l => S.done[l.id]);
 const allDone = () => ALL.every(l => S.done[l.id]);
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
@@ -49,9 +49,19 @@ const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { c
 function send(payload) {
   if (!C.SHEETS_URL) { console.info('[AI pas cu pas] SHEETS_URL nu e setat; nu trimit:', payload); return; }
   try {
-    fetch(C.SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }).catch(() => {});
+    fetch(C.SHEETS_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }).catch(() => {});
   } catch {}
 }
+// Trimitere cu confirmare: se rezolvă cu true doar dacă scriptul confirmă salvarea
+function sendConfirmed(payload) {
+  if (!C.SHEETS_URL) return Promise.resolve(false);
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 15000);
+  return fetch(C.SHEETS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), signal: ctrl.signal })
+    .then(r => r.text()).then(txt => { try { return JSON.parse(txt).ok === true; } catch { return false; } })
+    .catch(() => false).finally(() => clearTimeout(t));
+}
+// Clicuri pe legăturile către cursuri și training (data-t="cursuri:loc")
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('[data-t]'); if (!a) return; const [n, v] = a.dataset.t.split(':'); track('click_' + n, v); });
 
 // statistici anonime: fără nume, fără e-mail, fără identificator
 function track(name, value) { send({ type: 'event', name, value: value || '', source: 'ai-pas-cu-pas' }); }
@@ -123,18 +133,30 @@ function renderHome() {
   <div class="facts">
     <div class="fact"><b>7 module</b><span>de la „ce este AI” până la AI Act</span></div>
     <div class="fact"><b>28 de lecții</b><span>de 5–7 minute, cu simulări și exerciții</span></div>
-    <div class="fact"><b>Certificat</b><span>de absolvire, la final</span></div>
+    <div class="fact"><b>Certificat</b><span>de parcurgere, la final</span></div>
   </div>
   <h2 class="sec">Ce vei învăța</h2>
   <div class="mods">
     ${M.map((m, i) => `<div class="mod-card" style="--mc:${m.color}"><i>${I[m.icon]}</i><div><small>${esc(m.zone || '')}</small><b>${i + 1}. ${esc(m.title)}</b><span>${esc(m.subtitle)}</span></div></div>`).join('')}
   </div>
-  ${ctaBox()}`;
+  ${ctaBox('acasa')}
+  <div class="share-row"><button class="btn ghost small" id="shareApp">Trimite unui coleg</button></div>`;
+  $('#shareApp').onclick = shareApp;
 }
-function ctaBox() {
-  return `<div class="cta-box"><h3>Vrei un training pentru echipa ta?</h3>
-  <p>EvoTrainHub organizează programe de alfabetizare AI și de conformitate cu AI Act pentru instituții publice și companii, adaptate domeniului vostru.</p>
-  <a class="btn" href="${esc(C.SITE_URL)}" target="_blank" rel="noopener">Află mai multe pe evotrainhub.com</a></div>`;
+const COURSES_URL = C.COURSES_URL || C.SITE_URL, CONTACT_URL = C.CONTACT_URL || C.SITE_URL;
+function ctaBox(loc) {
+  return `<div class="cta-box"><h3>După bazele de aici</h3>
+  <p>Aplicația îți dă bazele. Cursurile EvoTrainHub adaugă exerciții pe situații reale din munca ta, feedback de la formator și răspunsuri la întrebările tale. Pentru instituții și companii, adaptăm programul domeniului vostru.</p>
+  <div class="btns"><a class="btn" href="${esc(COURSES_URL)}" target="_blank" rel="noopener" data-t="cursuri:${loc}">Descoperă cursurile AI</a>
+  <a class="btn ghost" href="${esc(CONTACT_URL)}" target="_blank" rel="noopener" data-t="training:${loc}">Solicită un training pentru echipă</a></div></div>`;
+}
+function shareApp() {
+  const url = C.APP_URL || location.href.split('#')[0];
+  const data = { title: C.APP_NAME, text: 'Un curs gratuit și scurt despre AI, pentru începători:', url };
+  if (navigator.share) { navigator.share(data).catch(() => {}); return; }
+  const ok = () => toast('Linkul a fost copiat. Îl poți lipi într-un mesaj.');
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(ok, () => prompt('Copiază linkul:', url));
+  else prompt('Copiază linkul:', url);
 }
 
 /* ---------------- chestionar ---------------- */
@@ -220,6 +242,7 @@ function renderMap() {
   const cur = ALL.findIndex(l => !S.done[l.id]);
   const me = myAvatar();
   let html = `<div class="map-head"><div><h1>Drumul tău prin jungla tehnologică</h1><p>${doneN === 0 ? `${esc(me.name)} te așteaptă la prima lecție.` : doneN === ALL.length ? 'Ai străbătut toată jungla. Felicitări!' : 'Continuă de unde ai rămas.'}</p>
+      <p class="save-note">Progresul se salvează în acest browser. Ca să continui de unde ai rămas, revino de pe același dispozitiv și din același browser.</p>
       <button class="link small" id="chg">Schimbă ghidul</button></div>
     <div class="overall"><small>${doneN} din ${ALL.length} lecții</small><div class="bar"><div style="width:${doneN / ALL.length * 100}%"></div></div></div></div>
     <div class="path" id="path"><svg class="trail" id="trail" aria-hidden="true"></svg>`;
@@ -317,17 +340,22 @@ function openGate(lessonId) {
   d.showModal(); setTimeout(() => $('#gEmail').focus(), 50);
 }
 function initGate() {
-  $('#gLater').onclick = () => $('#gate').close();
+  $('#gLater').onclick = () => { $('#gate').close(); if (pendingLesson) go('#/lectie/' + pendingLesson); };
   $('#gPriv').onclick = () => $('#gate').close();
   $('#gForm').onsubmit = e => {
     e.preventDefault();
     const email = $('#gEmail').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { $('#gErr').textContent = 'Verifică adresa de e-mail. Pare incompletă.'; return; }
     const mkt = $('#gMkt').checked;
-    send({ type: 'email', email, marketing: mkt, consentText: mkt ? $('#gMktTxt').textContent.trim() : '', source: 'ai-pas-cu-pas', hp: $('#gHp').value });
-    S.email = true; S.emailAddr = email; if (mkt) S.mkt = true; save(); $('#gate').close();
-    toast('Gata! Ai acces la toate modulele.');
-    if (pendingLesson) go('#/lectie/' + pendingLesson); else route();
+    const btn = $('#gForm').querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Se trimite…'; $('#gErr').textContent = '';
+    sendConfirmed({ type: 'email', email, marketing: mkt, consentText: mkt ? $('#gMktTxt').textContent.trim() : '', source: 'ai-pas-cu-pas', hp: $('#gHp').value }).then(ok => {
+      btn.disabled = false; btn.textContent = 'Trimite-mi linkul';
+      if (!ok) { $('#gErr').textContent = 'Nu am putut înregistra adresa. Verifică conexiunea la internet și încearcă din nou.'; return; }
+      S.email = true; S.emailAddr = email; if (mkt) S.mkt = true; save(); $('#gate').close();
+      toast('Gata! Îți trimitem linkul pe e-mail.');
+      if (pendingLesson) go('#/lectie/' + pendingLesson); else route();
+    });
   };
 }
 
@@ -690,6 +718,7 @@ function openLesson(id) {
       <div class="scores"><div class="score"><small>XP câștigat</small><b class="xp-c">+${gain}</b></div>
       <div class="score"><small>Din prima încercare</small><b class="ok-c">${acc}%</b></div></div>
       ${allDone() && !already ? '<p><b>Ai parcurs toată jungla. Certificatul tău e gata!</b></p>' : ''}
+      ${modFinished && L.mi === 2 ? `<div class="mini-cta"><p>Vrei să exersezi prompturile pe situații din munca ta, cu feedback de la un formator?</p><a class="btn small" href="${esc(COURSES_URL)}" target="_blank" rel="noopener" data-t="cursuri:modul3">Vezi cursurile practice</a></div>` : ''}
     </div>`;
     foot.className = 'l-foot'; foot.innerHTML = `<div class="in"><div class="fb"></div><button class="btn" id="lgo">Continuă</button></div>`;
     $('#lgo').onclick = () => go(allDone() && !already ? '#/certificat' : '#/drum');
@@ -735,7 +764,7 @@ function renderPost(slug) {
   app.innerHTML = `<article class="page"><a class="back" href="#/blog">${I.left.replace('<svg', '<svg width="18" height="18"')} Toate articolele</a>
     <div class="prose"><p class="meta" style="margin-top:18px"><span class="tag">${esc(p.tag || 'AI')}</span>${fmtDate(p.date)}</p><h1>${esc(p.title)}</h1>${md(p.body)}</div>
     ${S.survey ? '' : `<p><a class="btn" href="#/chestionar">Încearcă gratuit „${esc(C.APP_NAME)}”</a></p>`}
-    ${ctaBox()}</article>`;
+    ${ctaBox('blog')}</article>`;
   window.scrollTo(0, 0);
 }
 
@@ -747,7 +776,7 @@ function renderAbout() {
     <h2>Pentru organizații</h2>
     <p>Articolul 4 din AI Act cere organizațiilor care folosesc AI să ia măsuri care să sprijine alfabetizarea în domeniul AI a personalului. Putem adapta acest traseu, sau un program complet, domeniului vostru.</p>
     <p>Scrie-ne la <a href="mailto:${esc(C.CONTACT_EMAIL)}">${esc(C.CONTACT_EMAIL)}</a>.</p>
-    ${ctaBox()}</div>`;
+    ${ctaBox('despre')}</div>`;
   window.scrollTo(0, 0);
 }
 function renderPrivacy() {
@@ -756,14 +785,14 @@ function renderPrivacy() {
     <h2>Ce date colectăm și de ce</h2>
     <ul>
       <li><b>Chestionarul de la început</b> (sectorul, domeniul, cât folosești AI, ce te interesează) e anonim. Nu cerem nume și nu legăm răspunsurile de adresa de e-mail. Le folosim doar statistic, ca să facem materiale mai potrivite.</li>
-      <li><b>Adresa de e-mail</b>, cerută după primul modul, o folosim ca să-ți dăm acces la restul modulelor și ca să-ți trimitem un singur e-mail de bun venit, cu linkul aplicației.</li>
+      <li><b>Adresa de e-mail</b> e opțională. Dacă o lași după primul modul, o folosim ca să-ți trimitem un singur e-mail de bun venit, cu linkul aplicației. Toate modulele rămân accesibile și fără ea.</li>
       <li><b>Anunțurile despre cursuri și noutățile din domeniul AI</b> ți le trimitem doar dacă ai bifat separat această opțiune sau ai ales, la final, să primești noutăți. Bifa nu e obligatorie pentru a folosi aplicația. Te poți dezabona oricând, din orice mesaj sau scriindu-ne.</li>
       <li><b>Progresul tău</b> (lecțiile terminate, punctele) rămâne doar în browserul tău. Nu îl primim. Tot acolo păstrăm și adresa ta de e-mail, ca să nu fie nevoie să o scrii din nou.</li>
-      <li><b>Statistici anonime:</b> aflăm, fără niciun nume, e-mail sau identificator, câte persoane deschid aplicația pentru prima dată, câte termină fiecare modul și câte ajung la certificat. Nu folosim cookie-uri sau servicii de analiză externe.</li>
+      <li><b>Statistici anonime:</b> aflăm, fără niciun nume, e-mail sau identificator, câte persoane deschid aplicația pentru prima dată, câte termină fiecare modul, câte ajung la certificat și de câte ori sunt deschise legăturile către cursuri. Nu folosim cookie-uri sau servicii de analiză externe.</li>
       <li><b>Numele de pe certificat</b> e folosit doar în browserul tău, ca să genereze imaginea. Nu îl primim.</li>
     </ul>
     <h2>Temeiul legal și durata</h2>
-    <p>Pentru accesul la aplicație și e-mailul de bun venit: executarea serviciului pe care l-ai cerut. Pentru anunțuri: consimțământul tău, pe care îl poți retrage oricând. Păstrăm adresa ${esc(C.RETENTION)}.</p>
+    <p>Pentru e-mailul de bun venit: executarea serviciului pe care l-ai cerut. Pentru anunțuri: consimțământul tău, pe care îl poți retrage oricând. Păstrăm adresa ${esc(C.RETENTION)}.</p>
     <h2>Unde sunt stocate</h2>
     <p>Răspunsurile și adresele sunt stocate într-un document Google (Google Workspace), cu acces restrâns. Nu vindem și nu dăm datele altor firme.</p>
     <h2>Drepturile tale</h2>
@@ -790,11 +819,12 @@ function renderCert() {
   const signerTitle = C.CERT_SIGNER_TITLE || 'Conf. univ. dr. habil. Ruxandra Boghian';
   const signerRole = C.CERT_SIGNER_ROLE || 'Fondator EvoTrainHub';
   const showNl = !S.mkt && !S.nlDone;
-  app.innerHTML = `<div class="cert-wrap"><h1 class="sec" style="font-size:28px;margin-top:10px">Certificatul tău de absolvire</h1>
+  app.innerHTML = `<div class="cert-wrap"><h1 class="sec" style="font-size:28px;margin-top:10px">Certificatul tău de parcurgere</h1>
+    <p class="cert-note">Certificatul atestă parcurgerea programului introductiv „${esc(C.APP_NAME)}”. Nu este un certificat de calificare profesională.</p>
     <p style="color:var(--muted);margin:0">Scrie numele exact cum vrei să apară. Numele rămâne pe dispozitivul tău, nu îl primim.</p>
     <label class="field"><span>Nume și prenume</span><input id="cName" maxlength="60" autocomplete="name" value="${esc(S.certName || '')}"></label>
     <canvas id="cv" width="1600" height="1130" aria-label="Previzualizare certificat"></canvas>
-    <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" id="dl">Descarcă certificatul (PNG)</button><a class="btn ghost" href="#/drum">Înapoi la drum</a></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" id="dl">Descarcă certificatul (PNG)</button><a class="btn ghost" href="#/drum">Înapoi la drum</a><button class="btn ghost" id="shareApp">Trimite unui coleg</button></div>
     ${showNl ? `<section class="nl-card" id="nl">
       <h3>Rămâi la curent cu noutățile din AI</h3>
       <p>Vrei să primești de la EvoTrainHub, pe e-mail, noutăți despre cursurile noastre și despre schimbările importante din domeniul inteligenței artificiale? Te poți dezabona oricând, din orice mesaj.</p>
@@ -804,7 +834,7 @@ function renderCert() {
       <p class="err" id="nlErr" role="alert"></p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><button class="btn" id="nlYes">Da, vreau noutățile</button><button class="link" id="nlNo">Nu, mulțumesc</button></div>
     </section>` : ''}
-    ${ctaBox()}</div>`;
+    ${ctaBox('certificat')}</div>`;
   const cv = $('#cv'), ctx = cv.getContext('2d'), logo = new Image(), sig = new Image();
   const SIG_SRC = C.CERT_SIGNATURE_IMAGE || 'assets/semnatura.png';
   let logoOk = true, sigOk = !!SIG_SRC;
@@ -820,14 +850,14 @@ function renderCert() {
     ctx.strokeStyle = '#22A55B'; ctx.lineWidth = 1.5; ctx.strokeRect(64, 64, W - 128, H - 128);
     if (logoOk && logo.complete && logo.naturalWidth) ctx.drawImage(logo, W / 2 - 75, 100, 150, 150);
     ctx.textAlign = 'center'; ctx.fillStyle = '#0E6B4F';
-    ctx.font = `600 62px ${F}`; ctx.fillText('Certificat de absolvire', W / 2, 330);
+    ctx.font = `600 62px ${F}`; ctx.fillText('Certificat de parcurgere', W / 2, 330);
     ctx.fillStyle = '#5A7568'; ctx.font = `400 30px ${F}`; ctx.fillText('Se acordă', W / 2, 410);
     let size = 84; ctx.font = `600 ${size}px ${F}`;
     while (ctx.measureText(name).width > W - 320 && size > 40) { size -= 4; ctx.font = `600 ${size}px ${F}`; }
     ctx.fillStyle = '#12332A'; ctx.fillText(name, W / 2, 510);
     ctx.strokeStyle = '#FFC23D'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(W / 2 - 260, 545); ctx.lineTo(W / 2 + 260, 545); ctx.stroke();
     ctx.fillStyle = '#12332A'; ctx.font = `400 32px ${F}`;
-    ctx.fillText(`pentru absolvirea programului „${C.APP_NAME}”`, W / 2, 620);
+    ctx.fillText(`pentru parcurgerea programului introductiv „${C.APP_NAME}”`, W / 2, 620);
     ctx.fillStyle = '#5A7568'; ctx.font = `400 25px ${F}`;
     ctx.fillText('7 module și 28 de lecții de alfabetizare în domeniul inteligenței artificiale:', W / 2, 675);
     ctx.fillText('noțiuni de bază, formularea prompturilor, utilizare la birou, verificarea informațiilor,', W / 2, 712);
@@ -836,7 +866,7 @@ function renderCert() {
     const date = new Date(S.certDate + 'T12:00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
     ctx.textAlign = 'left'; ctx.fillStyle = '#12332A'; ctx.font = `600 26px ${F}`; ctx.fillText(date, 170, 940);
     ctx.strokeStyle = '#9DB5A8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(170, 958); ctx.lineTo(560, 958); ctx.stroke();
-    ctx.fillStyle = '#5A7568'; ctx.font = `400 21px ${F}`; ctx.fillText('Data absolvirii', 170, 990);
+    ctx.fillStyle = '#5A7568'; ctx.font = `400 21px ${F}`; ctx.fillText('Data finalizării', 170, 990);
     ctx.fillText('Nr. ' + S.certNo, 170, 1022);
     // dreapta: semnătura
     const R = W - 170, sx = R - 390;
@@ -855,10 +885,11 @@ function renderCert() {
   if (sigOk) { sig.onload = draw; sig.onerror = () => { sigOk = false; draw(); }; }
   const fontsReady = document.fonts ? Promise.all([document.fonts.load(`400 64px "Great Vibes"`), document.fonts.load(`600 26px Lexend`)]).catch(() => {}).then(() => document.fonts.ready) : Promise.resolve();
   draw(); fontsReady.then(draw);
+  $('#shareApp').onclick = shareApp;
   $('#cName').oninput = () => { S.certName = $('#cName').value; save(); draw(); };
   $('#dl').onclick = () => {
     if (!$('#cName').value.trim()) { toast('Scrie întâi numele.'); $('#cName').focus(); return; }
-    const done = blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'certificat-absolvire-ai-pas-cu-pas.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+    const done = blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'certificat-parcurgere-ai-pas-cu-pas.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
     try { cv.toBlob(b => b ? done(b) : fail()); } catch { fail(); }
     function fail() { logoOk = false; sigOk = false; draw(); try { cv.toBlob(b => b && done(b)); } catch { toast('Descărcarea nu a mers. Încearcă din alt browser.'); } }
   };
@@ -867,9 +898,12 @@ function renderCert() {
     $('#nlYes').onclick = () => {
       const email = $('#nlEmail').value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { $('#nlErr').textContent = 'Verifică adresa de e-mail. Pare incompletă.'; return; }
-      send({ type: 'email', email, marketing: true, consentText: $('#nlTxt').textContent.trim(), source: 'certificat-newsletter', hp: $('#nlHp').value });
-      S.mkt = true; S.nlDone = true; S.emailAddr = email; save();
-      $('#nl').innerHTML = '<h3>Mulțumim!</h3><p>Te-ai abonat la noutățile EvoTrainHub. Te poți dezabona oricând, din orice mesaj primit.</p>';
+      const btn = $('#nlYes'); btn.disabled = true; btn.textContent = 'Se trimite…'; $('#nlErr').textContent = '';
+      sendConfirmed({ type: 'email', email, marketing: true, consentText: $('#nlTxt').textContent.trim(), source: 'certificat-newsletter', hp: $('#nlHp').value }).then(ok => {
+        if (!ok) { btn.disabled = false; btn.textContent = 'Da, vreau noutățile'; $('#nlErr').textContent = 'Nu am putut înregistra adresa. Verifică conexiunea la internet și încearcă din nou.'; return; }
+        S.mkt = true; S.nlDone = true; S.emailAddr = email; save();
+        $('#nl').innerHTML = '<h3>Mulțumim!</h3><p>Te-ai abonat la noutățile EvoTrainHub. Te poți dezabona oricând, din orice mesaj primit.</p>';
+      });
     };
   }
   try { if (!sessionStorage.getItem('certConfetti')) { sessionStorage.setItem('certConfetti', '1'); confetti(); } } catch {}
