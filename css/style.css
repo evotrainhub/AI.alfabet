@@ -39,7 +39,7 @@ img{max-width:100%}
 .stat{display:flex;align-items:center;gap:5px;font-weight:600;font-size:15px;padding:6px 10px;border-radius:12px;background:var(--surface);border:2px solid var(--line)}
 .stat svg{width:18px;height:18px}
 .stat.xp svg{color:var(--sun)} .stat.fire svg{color:var(--mango)}
-@media (max-width:640px){.brand span,.stat.fire{display:none}.top-in{gap:8px;padding:8px 12px}.nav a{padding:7px 8px;font-size:14px}}
+@media (max-width:640px){.brand span,.stat.fire,.nav-ext{display:none}.top-in{gap:8px;padding:8px 12px}.nav a{padding:7px 8px;font-size:14px}}
 
 main{max-width:1000px;margin:0 auto;padding:0 18px 80px}
 .page{max-width:720px;margin:0 auto}
@@ -434,3 +434,13 @@ dialog::backdrop{background:rgba(14,51,42,.55)}
 .nl-card h3{margin:0 0 6px;font-size:21px;color:var(--jungle);font-weight:600}
 .nl-card p{margin:0 0 8px;color:var(--muted)}
 .nl-card .field{max-width:420px}
+
+/* ---------- legături către cursuri ---------- */
+.cta-box .btns{display:flex;gap:12px;flex-wrap:wrap}
+.cta-box .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.55);box-shadow:0 5px 0 rgba(0,0,0,.18)}
+.mini-cta{margin:18px auto 0;max-width:420px;padding:16px 18px;border:2px solid var(--line);border-radius:var(--r);background:var(--surface);text-align:left}
+.mini-cta p{margin:0 0 12px}
+.save-note{font-size:14px;color:var(--muted);margin:6px 0 0}
+.share-row{text-align:center;margin:18px 0 0}
+.cert-note{font-size:14px;color:var(--muted);margin:4px 0 10px}
+.cta-box .btns .btn{flex:1 1 240px;text-align:center}
