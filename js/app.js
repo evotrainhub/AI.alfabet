@@ -53,6 +53,9 @@ function send(payload) {
   } catch {}
 }
 
+// statistici anonime: fără nume, fără e-mail, fără identificator
+function track(name, value) { send({ type: 'event', name, value: value || '', source: 'ai-pas-cu-pas' }); }
+
 /* ---------------- utilitare UI ---------------- */
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
@@ -676,6 +679,7 @@ function openLesson(id) {
     if (!already) S.walkFrom = L.id;
     S.done[L.id] = true; save(); updateStats();
     const modFinished = !already && moduleDone(L.mi);
+    if (modFinished) track('modul_terminat', L.m.id);
     const acc = graded ? Math.round(firstTry / graded * 100) : 100;
     $('#lbar').style.width = '100%';
     $('#phases').querySelectorAll('span').forEach(s => s.className = 'past');
@@ -755,6 +759,7 @@ function renderPrivacy() {
       <li><b>Adresa de e-mail</b>, cerută după primul modul, o folosim ca să-ți dăm acces la restul modulelor și ca să-ți trimitem un singur e-mail de bun venit, cu linkul aplicației.</li>
       <li><b>Anunțurile despre cursuri și noutățile din domeniul AI</b> ți le trimitem doar dacă ai bifat separat această opțiune sau ai ales, la final, să primești noutăți. Bifa nu e obligatorie pentru a folosi aplicația. Te poți dezabona oricând, din orice mesaj sau scriindu-ne.</li>
       <li><b>Progresul tău</b> (lecțiile terminate, punctele) rămâne doar în browserul tău. Nu îl primim. Tot acolo păstrăm și adresa ta de e-mail, ca să nu fie nevoie să o scrii din nou.</li>
+      <li><b>Statistici anonime:</b> aflăm, fără niciun nume, e-mail sau identificator, câte persoane deschid aplicația pentru prima dată, câte termină fiecare modul și câte ajung la certificat. Nu folosim cookie-uri sau servicii de analiză externe.</li>
       <li><b>Numele de pe certificat</b> e folosit doar în browserul tău, ca să genereze imaginea. Nu îl primim.</li>
     </ul>
     <h2>Temeiul legal și durata</h2>
@@ -779,6 +784,7 @@ function renderCert() {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     S.certNo = 'AIP-' + new Date().getFullYear() + '-' + Array.from({ length: 5 }, () => abc[Math.floor(Math.random() * abc.length)]).join('');
     S.certDate = new Date().toISOString().slice(0, 10); save();
+    track('certificat');
   }
   const signer = C.CERT_SIGNER_NAME || 'Ruxandra Boghian';
   const signerTitle = C.CERT_SIGNER_TITLE || 'Conf. univ. dr. habil. Ruxandra Boghian';
@@ -871,5 +877,6 @@ function renderCert() {
 
 /* ---------------- pornire ---------------- */
 initGate();
+if (!S.counted) { S.counted = true; save(); track('prima_vizita'); }
 route();
 })();
