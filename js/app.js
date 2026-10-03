@@ -99,8 +99,8 @@ function route() {
   document.title = C.APP_NAME + ' · EvoTrainHub';
   updateStats();
   if (r === 'chestionar') { setNav(''); return renderSurvey(); }
-  if (r === 'ghid') { setNav('drum'); if (!S.survey) return go('#/chestionar'); return renderGuidePicker(); }
-  if (r === 'drum') { setNav('drum'); if (!S.survey) return go('#/chestionar'); return renderMap(); }
+  if (r === 'ghid') { setNav('drum'); return renderGuidePicker(); }
+  if (r === 'drum') { setNav('drum'); return renderMap(); }
   if (r === 'lectie') { setNav('drum'); return openLesson(arg); }
   if (r === 'blog') { setNav('blog'); return arg ? renderPost(arg) : renderBlog(); }
   if (r === 'despre') { setNav('despre'); return renderAbout(); }
@@ -111,7 +111,7 @@ function route() {
 
 /* ---------------- pagina de start ---------------- */
 function renderHome() {
-  const started = S.survey;
+  const started = !!S.avatar;
   const orbPos = [[50, -3], [93, 25], [93, 72], [50, 100], [7, 72], [7, 25]];
   app.innerHTML = `
   <section class="hero">
@@ -119,7 +119,7 @@ function renderHome() {
       <h1>Descoperă inteligența artificială, pas cu pas.</h1>
       <p>O expediție gratuită în 7 etape prin jungla tehnologiei, pentru oricine vrea să folosească AI la muncă, corect și în siguranță. Fără termeni tehnici, cu un ghid care te însoțește la fiecare pas.</p>
       <div class="cta">
-        <a class="btn" href="${started ? '#/drum' : '#/chestionar'}">${started ? 'Continuă drumul' : 'Începe gratuit'}</a>
+        <a class="btn" href="${started ? '#/drum' : '#/ghid'}"${started ? '' : ' data-t="start:acasa"'}>${started ? 'Continuă drumul' : 'Începe gratuit'}</a>
         <a class="btn ghost" href="#/blog">Citește blogul</a>
       </div>
     </div>
@@ -159,7 +159,7 @@ function shareApp() {
   else prompt('Copiază linkul:', url);
 }
 
-/* ---------------- chestionar ---------------- */
+/* ---------------- chestionar (opțional, după prima lecție) ---------------- */
 const SURVEY = [
   { k: 'sector', q: 'Unde lucrezi?', o: ['Sector public', 'Sector privat', 'ONG', 'Mediul academic', 'Sunt elev sau student', 'Altă situație'] },
   { k: 'domain', q: 'În ce domeniu activezi?', o: ['Administrație publică', 'Educație', 'Sănătate', 'Financiar-contabil', 'Juridic', 'Resurse umane', 'Vânzări și marketing', 'IT și tehnologie', 'Producție și industrie', 'Alt domeniu'] },
@@ -167,19 +167,19 @@ const SURVEY = [
   { k: 'goal', q: 'Ce te interesează cel mai mult?', o: ['Să economisesc timp la muncă', 'Să înțeleg riscurile', 'Să-mi ajut echipa sau elevii', 'Sunt curios, vreau să înțeleg'] }
 ];
 function renderSurvey() {
-  if (S.survey) return go(S.avatar ? '#/drum' : '#/ghid');
+  if (S.survey || S.surveySkip) return go('#/drum');
   const ans = {}; let i = 0;
   const draw = () => {
     const s = SURVEY[i];
     app.innerHTML = `<section class="survey">
       <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="${i}"><div style="width:${i / SURVEY.length * 100}%"></div></div>
-      <p class="step-count" style="margin-top:22px">Întrebarea ${i + 1} din ${SURVEY.length}</p>
+      <p class="step-count" style="margin-top:22px">Întrebarea ${i + 1} din ${SURVEY.length} · opțional</p>
       <h2>${esc(s.q)}</h2>
-      ${i === 0 ? '<p class="why">Patru întrebări rapide, fără nume. Ne ajută să facem materiale potrivite pentru oameni ca tine.</p>' : '<p class="why">Alege varianta cea mai apropiată.</p>'}
+      ${i === 0 ? '<p class="why">Ai terminat prima lecție! Ne ajuți cu 4 întrebări rapide, fără nume? Durează 20 de secunde și ne ajută să facem materiale potrivite pentru oameni ca tine.</p>' : '<p class="why">Alege varianta cea mai apropiată.</p>'}
       <div class="choices${s.o.length > 6 ? ' two' : ''}">
         ${s.o.map((o, j) => `<button class="choice${ans[s.k] === o ? ' sel' : ''}" data-v="${esc(o)}"><span class="k">${j + 1}</span>${esc(o)}</button>`).join('')}
       </div>
-      ${i > 0 ? '<button class="link" id="back">Înapoi</button>' : ''}
+      <div style="display:flex;gap:16px;flex-wrap:wrap">${i > 0 ? '<button class="link" id="back">Înapoi</button>' : ''}<button class="link" id="skip">Sari peste și continuă drumul</button></div>
     </section>`;
     app.querySelectorAll('.choice').forEach(b => b.onclick = () => {
       ans[s.k] = b.dataset.v; b.classList.add('sel');
@@ -187,11 +187,12 @@ function renderSurvey() {
         if (i < SURVEY.length - 1) { i++; draw(); }
         else {
           send(Object.assign({ type: 'survey', source: 'ai-pas-cu-pas' }, ans));
-          S.survey = true; save(); go('#/ghid'); toast('Mulțumim! Acum alege-ți ghidul.');
+          S.survey = true; save(); go('#/drum'); toast('Mulțumim! Continuăm drumul.');
         }
       }, 220);
     });
     const bk = $('#back'); if (bk) bk.onclick = () => { i--; draw(); };
+    $('#skip').onclick = () => { S.surveySkip = true; save(); track('chestionar_omis', 'intrebarea' + (i + 1)); go('#/drum'); };
     window.scrollTo(0, 0);
   };
   draw();
@@ -216,7 +217,13 @@ function renderGuidePicker() {
     app.querySelectorAll('.av-card').forEach(x => { x.classList.toggle('sel', x === b); x.setAttribute('aria-checked', x === b); });
     $('#avGo').disabled = false;
   });
-  $('#avGo').onclick = () => { S.avatar = pick; save(); go('#/drum'); };
+  $('#avGo').onclick = () => {
+    const first = !S.avatar;
+    S.avatar = pick; save();
+    if (first) track('ghid_ales', pick);
+    // cine abia începe intră direct în prima lecție
+    go(Object.keys(S.done).length ? '#/drum' : '#/lectie/' + ALL[0].id);
+  };
   window.scrollTo(0, 0);
 }
 
@@ -492,10 +499,11 @@ const KINDS = { mcq: 'Alege răspunsul', tf: 'Adevăr sau mit?', order: 'Pune î
 function openLesson(id) {
   const L = byId(id);
   if (!L) return go('#/drum');
-  if (!S.survey) return go('#/chestionar');
   if (!S.avatar) return go('#/ghid');
   if (!isUnlocked(L)) { go('#/drum'); return toast('Termină întâi lecția anterioară.'); }
   if (needsEmail(L)) { go('#/drum'); return setTimeout(() => openGate(L.id), 50); }
+  if (!S.opened) S.opened = {};
+  if (!S.opened[L.id] && !S.done[L.id]) { S.opened[L.id] = true; save(); track('lectie_inceputa', L.id); }
   if (!app.querySelector('.path')) renderMap();
   document.body.style.overflow = 'hidden'; $('#toast').classList.remove('show');
   const me = myAvatar();
@@ -706,8 +714,11 @@ function openLesson(id) {
     }
     if (!already) S.walkFrom = L.id;
     S.done[L.id] = true; save(); updateStats();
+    if (!already) track('lectie_terminata', L.id);
     const modFinished = !already && moduleDone(L.mi);
     if (modFinished) track('modul_terminat', L.m.id);
+    // chestionarul opțional apare o singură dată, după prima lecție
+    const askSurvey = !already && L.idx === 0 && !S.survey && !S.surveySkip;
     const acc = graded ? Math.round(firstTry / graded * 100) : 100;
     $('#lbar').style.width = '100%';
     $('#phases').querySelectorAll('span').forEach(s => s.className = 'past');
@@ -721,7 +732,7 @@ function openLesson(id) {
       ${modFinished && L.mi === 2 ? `<div class="mini-cta"><p>Vrei să exersezi prompturile pe situații din munca ta, cu feedback de la un formator?</p><a class="btn small" href="${esc(COURSES_URL)}" target="_blank" rel="noopener" data-t="cursuri:modul3">Vezi cursurile practice</a></div>` : ''}
     </div>`;
     foot.className = 'l-foot'; foot.innerHTML = `<div class="in"><div class="fb"></div><button class="btn" id="lgo">Continuă</button></div>`;
-    $('#lgo').onclick = () => go(allDone() && !already ? '#/certificat' : '#/drum');
+    $('#lgo').onclick = () => go(askSurvey ? '#/chestionar' : (allDone() && !already ? '#/certificat' : '#/drum'));
     $('#lgo').focus();
     confetti();
   }
@@ -763,7 +774,7 @@ function renderPost(slug) {
   document.title = p.title + ' · EvoTrainHub';
   app.innerHTML = `<article class="page"><a class="back" href="#/blog">${I.left.replace('<svg', '<svg width="18" height="18"')} Toate articolele</a>
     <div class="prose"><p class="meta" style="margin-top:18px"><span class="tag">${esc(p.tag || 'AI')}</span>${fmtDate(p.date)}</p><h1>${esc(p.title)}</h1>${md(p.body)}</div>
-    ${S.survey ? '' : `<p><a class="btn" href="#/chestionar">Încearcă gratuit „${esc(C.APP_NAME)}”</a></p>`}
+    ${S.avatar ? '' : `<p><a class="btn" href="#/ghid" data-t="start:blog">Încearcă gratuit „${esc(C.APP_NAME)}”</a></p>`}
     ${ctaBox('blog')}</article>`;
   window.scrollTo(0, 0);
 }
@@ -784,11 +795,11 @@ function renderPrivacy() {
     <p><b>Operator:</b> ${esc(C.OPERATOR)}. Contact: <a href="mailto:${esc(C.CONTACT_EMAIL)}">${esc(C.CONTACT_EMAIL)}</a>.</p>
     <h2>Ce date colectăm și de ce</h2>
     <ul>
-      <li><b>Chestionarul de la început</b> (sectorul, domeniul, cât folosești AI, ce te interesează) e anonim. Nu cerem nume și nu legăm răspunsurile de adresa de e-mail. Le folosim doar statistic, ca să facem materiale mai potrivite.</li>
+      <li><b>Chestionarul opțional</b> de după prima lecție (sectorul, domeniul, cât folosești AI, ce te interesează) e anonim. Nu cerem nume și nu legăm răspunsurile de adresa de e-mail. Le folosim doar statistic, ca să facem materiale mai potrivite. Poți sări peste el.</li>
       <li><b>Adresa de e-mail</b> e opțională. Dacă o lași după primul modul, o folosim ca să-ți trimitem un singur e-mail de bun venit, cu linkul aplicației. Toate modulele rămân accesibile și fără ea.</li>
       <li><b>Anunțurile despre cursuri și noutățile din domeniul AI</b> ți le trimitem doar dacă ai bifat separat această opțiune sau ai ales, la final, să primești noutăți. Bifa nu e obligatorie pentru a folosi aplicația. Te poți dezabona oricând, din orice mesaj sau scriindu-ne.</li>
       <li><b>Progresul tău</b> (lecțiile terminate, punctele) rămâne doar în browserul tău. Nu îl primim. Tot acolo păstrăm și adresa ta de e-mail, ca să nu fie nevoie să o scrii din nou.</li>
-      <li><b>Statistici anonime:</b> aflăm, fără niciun nume, e-mail sau identificator, câte persoane deschid aplicația pentru prima dată, câte termină fiecare modul, câte ajung la certificat și de câte ori sunt deschise legăturile către cursuri. Nu folosim cookie-uri sau servicii de analiză externe.</li>
+      <li><b>Statistici anonime:</b> aflăm, fără niciun nume, e-mail sau identificator, câte persoane deschid aplicația pentru prima dată, câte încep și termină fiecare lecție și modul, câte ajung la certificat și de câte ori sunt deschise legăturile către cursuri. Nu folosim cookie-uri sau servicii de analiză externe.</li>
       <li><b>Numele de pe certificat</b> e folosit doar în browserul tău, ca să genereze imaginea. Nu îl primim.</li>
     </ul>
     <h2>Temeiul legal și durata</h2>
@@ -798,7 +809,7 @@ function renderPrivacy() {
     <h2>Drepturile tale</h2>
     <p>Ai dreptul să ceri acces la date, rectificarea sau ștergerea lor, restricționarea prelucrării, portabilitatea și să te opui prelucrării. Scrie-ne la adresa de mai sus. Poți depune și plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP).</p>
     <p class="fine">Dacă vrei să ștergi progresul de pe acest dispozitiv: <button class="link" id="reset">șterge progresul local</button></p></div>`;
-  $('#reset').onclick = () => { if (confirm('Ștergi progresul de pe acest dispozitiv? Nu poate fi recuperat.')) { localStorage.removeItem(KEY); S = defaults(); updateStats(); toast('Progres șters.'); go('#/'); } };
+  $('#reset').onclick = () => { if (confirm('Ștergi progresul de pe acest dispozitiv? Nu poate fi recuperat.')) { localStorage.removeItem(KEY); S = defaults(); S.counted = true; save(); updateStats(); toast('Progres șters.'); go('#/'); } };
   window.scrollTo(0, 0);
 }
 
