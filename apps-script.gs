@@ -4,7 +4,7 @@
  *
  * Foaia „Chestionar”  – răspunsuri anonime (fără e-mail)
  * Foaia „Emailuri”    – adrese + acordul pentru anunțuri
- * Foaia „Evenimente”  – statistici anonime (prima vizită, module terminate, certificate, clicuri către cursuri)
+ * Foaia „Evenimente”  – statistici anonime (vizite, lecții, module, certificate, clicuri)
  * Foaia „Statistici”  – panoul tău; se (re)creează cu funcția creeazaStatistici()
  */
 
@@ -31,7 +31,8 @@ function doPost(e) {
     }
 
     if (d.type === 'event') {
-      const permise = ['prima_vizita', 'modul_terminat', 'certificat', 'click_cursuri', 'click_training'];
+      const permise = ['prima_vizita', 'modul_terminat', 'certificat', 'click_cursuri', 'click_training',
+                       'click_start', 'ghid_ales', 'lectie_inceputa', 'lectie_terminata', 'chestionar_omis'];
       if (permise.indexOf(d.name) !== -1) {
         foaie(ss, 'Evenimente', ['Data', 'Eveniment', 'Detaliu']).appendRow([new Date(), d.name, curat(d.value)]);
       }
@@ -126,20 +127,22 @@ function creeazaStatistici() {
   if (sh) sh.clear(); else sh = ss.insertSheet('Statistici', 0);
   const E = 'Evenimente!', V = 'COUNTIF(' + E + 'B:B,"prima_vizita")';
   const n7 = (ev) => '=COUNTIFS(' + E + 'B:B,"' + ev + '",' + E + 'A:A,">="&(TODAY()-7))';
+  const ev = (name, det) => '=COUNTIFS(' + E + 'B:B,"' + name + '",' + E + 'C:C,"' + det + '")';
+  const ev7 = (name, det) => '=COUNTIFS(' + E + 'B:B,"' + name + '",' + E + 'C:C,"' + det + '",' + E + 'A:A,">="&(TODAY()-7))';
   const rows = [
     ['AI pas cu pas – statistici', '', ''],
     ['', 'Total', 'Ultimele 7 zile'],
     ['Au deschis aplicația (prima vizită)', '=' + V, n7('prima_vizita')],
     ['Au completat chestionarul', '=MAX(0,COUNTA(Chestionar!A:A)-1)', '=COUNTIFS(Chestionar!A:A,">="&(TODAY()-7))'],
-    ['Au terminat modulul 1', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m1")', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m1",' + E + 'A:A,">="&(TODAY()-7))'],
+    ['Au terminat modulul 1', ev('modul_terminat', 'm1'), ev7('modul_terminat', 'm1')],
     ['Și-au lăsat e-mailul (adrese unice)', '=IFERROR(COUNTUNIQUE(Emailuri!B2:B),0)', ''],
-    ['Au acceptat anunțurile (adrese unice)', '=IFERROR(COUNTUNIQUE(FILTER(Emailuri!B2:B,Emailuri!C2:C="DA")),0)', ''],
-    ['Au terminat modulul 2', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m2")', ''],
-    ['Au terminat modulul 3', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m3")', ''],
-    ['Au terminat modulul 4', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m4")', ''],
-    ['Au terminat modulul 5', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m5")', ''],
-    ['Au terminat modulul 6', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m6")', ''],
-    ['Au terminat modulul 7', '=COUNTIFS(' + E + 'B:B,"modul_terminat",' + E + 'C:C,"m7")', ''],
+    ['Au acceptat anunțurile (adrese unice)', '=COUNTUNIQUEIFS(Emailuri!B2:B,Emailuri!C2:C,"DA")', ''],
+    ['Au terminat modulul 2', ev('modul_terminat', 'm2'), ''],
+    ['Au terminat modulul 3', ev('modul_terminat', 'm3'), ''],
+    ['Au terminat modulul 4', ev('modul_terminat', 'm4'), ''],
+    ['Au terminat modulul 5', ev('modul_terminat', 'm5'), ''],
+    ['Au terminat modulul 6', ev('modul_terminat', 'm6'), ''],
+    ['Au terminat modulul 7', ev('modul_terminat', 'm7'), ''],
     ['Au ajuns la certificat', '=COUNTIF(' + E + 'B:B,"certificat")', n7('certificat')],
     ['', '', ''],
     ['Din cei care au deschis aplicația:', '', ''],
@@ -148,19 +151,31 @@ function creeazaStatistici() {
     ['', '', ''],
     ['Interes pentru cursuri (clicuri)', '', ''],
     ['Clicuri către cursurile online', '=COUNTIF(' + E + 'B:B,"click_cursuri")', n7('click_cursuri')],
-    ['   … din pagina principală', '=COUNTIFS(' + E + 'B:B,"click_cursuri",' + E + 'C:C,"acasa")', ''],
-    ['   … după modulul 3', '=COUNTIFS(' + E + 'B:B,"click_cursuri",' + E + 'C:C,"modul3")', ''],
-    ['   … de la certificat', '=COUNTIFS(' + E + 'B:B,"click_cursuri",' + E + 'C:C,"certificat")', ''],
+    ['   … din pagina principală', ev('click_cursuri', 'acasa'), ''],
+    ['   … după modulul 3', ev('click_cursuri', 'modul3'), ''],
+    ['   … de la certificat', ev('click_cursuri', 'certificat'), ''],
     ['   … din meniu, subsol, blog, „Despre”', '=B21-B22-B23-B24', ''],
-    ['Clicuri pe „Solicită un training”', '=COUNTIF(' + E + 'B:B,"click_training")', n7('click_training')]
+    ['Clicuri pe „Solicită un training”', '=COUNTIF(' + E + 'B:B,"click_training")', n7('click_training')],
+    ['', '', ''],
+    ['Pâlnia de început (de unde pleacă oamenii)', 'Total', 'Ultimele 7 zile'],
+    ['1. Au deschis aplicația', '=B3', '=C3'],
+    ['2. Au apăsat „Începe gratuit”', '=COUNTIF(' + E + 'B:B,"click_start")', n7('click_start')],
+    ['3. Au ales ghidul', '=COUNTIF(' + E + 'B:B,"ghid_ales")', n7('ghid_ales')],
+    ['4. Au început lecția 1', ev('lectie_inceputa', 'm1l1'), ev7('lectie_inceputa', 'm1l1')],
+    ['5. Au terminat lecția 1', ev('lectie_terminata', 'm1l1'), ev7('lectie_terminata', 'm1l1')],
+    ['6. Au terminat lecția 2', ev('lectie_terminata', 'm1l2'), ev7('lectie_terminata', 'm1l2')],
+    ['7. Au terminat lecția 3', ev('lectie_terminata', 'm1l3'), ev7('lectie_terminata', 'm1l3')],
+    ['8. Au terminat lecția 4 (tot modulul 1)', ev('lectie_terminata', 'm1l4'), ev7('lectie_terminata', 'm1l4')],
+    ['Au sărit peste chestionar (după lecția 1)', '=COUNTIF(' + E + 'B:B,"chestionar_omis")', n7('chestionar_omis')]
   ];
   sh.getRange(1, 1, rows.length, 3).setValues(rows);
   sh.getRange('A1').setFontSize(14).setFontWeight('bold');
   sh.getRange('A2:C2').setFontWeight('bold');
   sh.getRange('A16').setFontWeight('bold');
   sh.getRange('A20').setFontWeight('bold');
+  sh.getRange('A28:C28').setFontWeight('bold');
   sh.getRange('B17:B18').setNumberFormat('0%');
-  sh.setColumnWidth(1, 300); sh.setColumnWidths(2, 2, 130);
+  sh.setColumnWidth(1, 320); sh.setColumnWidths(2, 2, 130);
   sh.setFrozenRows(2);
 }
 
