@@ -260,13 +260,14 @@ function renderHome() {
       </div>
       <p class="hero-note">Gratuit · fără cont · 5–7 minute pe lecție</p>
     </div>
-    <div class="hero-art" aria-hidden="true">
-      <div class="ring"></div>
-      <img src="assets/app-512.png" alt="">
-      ${M.slice(0, 6).map((m, i) => `<span class="orb" style="background:${m.color};left:calc(${orbPos[i][0]}% - 31px);top:calc(${orbPos[i][1]}% - 31px)">${I[m.icon]}</span>`).join('')}
+    <div class="hero-scene" aria-hidden="true">
+      <img class="hs-bg" src="assets/hero.webp" alt="">
+      <img class="hs-icon" src="assets/app-512.png" alt="">
+      <div class="hs-crew">${window.AVATARS.map((a, i) => `<span class="crew-av idle" style="--d:${i}">${avatarSVG(a)}</span>`).join('')}</div>
+      ${Array.from({ length: 8 }, (_, i) => `<i class="ff" style="--i:${i};left:${6 + (i * 37) % 88}%;top:${40 + (i * 23) % 40}%"></i>`).join('')}
     </div>
   </section>
-  <div class="crew" aria-label="Ghizii care te pot însoți">${window.AVATARS.map((a, i) => `<span class="crew-av idle" style="--d:${i}">${avatarSVG(a)}</span>`).join('')}<p>Alege-ți un ghid care te însoțește prin toate cele 7 zone.</p></div>
+  <p class="crew-note">Șase ghizi te așteaptă. Alege-l pe cel care îți seamănă și pornește prin cele 7 zone.</p>
   <div class="facts">
     <div class="fact"><b>7 module</b><span>de la „ce este AI” până la AI Act</span></div>
     <div class="fact"><b>28 de lecții</b><span>de 5–7 minute, cu simulări și exerciții</span></div>
@@ -274,7 +275,7 @@ function renderHome() {
   </div>
   <h2 class="sec">Ce vei învăța</h2>
   <div class="mods">
-    ${M.map((m, i) => `<div class="mod-card" style="--mc:${m.color}"><i>${I[m.icon]}</i><div><small>${esc(m.zone || '')}</small><b>${i + 1}. ${esc(m.title)}</b><span>${esc(m.subtitle)}</span></div></div>`).join('')}
+    ${M.map((m, i) => `<div class="mod-card" style="--mc:${m.color}"><span class="thumb">${zoneScene(i, m.color)}<i>${I[m.icon]}</i></span><div><small>${esc(m.zone || '')}</small><b>${i + 1}. ${esc(m.title)}</b><span>${esc(m.subtitle)}</span></div></div>`).join('')}
   </div>
   ${authorBox('acasa')}
   ${ctaBox('acasa')}
@@ -345,7 +346,7 @@ function renderGuidePicker() {
     <h1>Alege-ți ghidul</h1>
     <p>Te va însoți prin junglă, de la o lecție la alta. Îl poți schimba oricând.</p>
     <div class="av-grid" role="radiogroup" aria-label="Ghizi">
-      ${AV.map(a => `<button class="av-card${pick === a.id ? ' sel' : ''}" role="radio" aria-checked="${pick === a.id}" data-id="${a.id}">
+      ${AV.map(a => `<button class="av-card${pick === a.id ? ' sel' : ''}" role="radio" aria-checked="${pick === a.id}" data-id="${a.id}" style="--ac:${a.shirt}">
         <span class="av-fig idle">${avatarSVG(a)}</span><b>${esc(a.name)}</b><small>${esc(a.tag)}</small></button>`).join('')}
     </div>
     <p class="av-quote" id="avQ" aria-live="polite">${pick ? `<b>${esc(myAvatar().name)}:</b> „${esc(voice().hi)}”` : 'Atinge un ghid ca să afli cum vorbește.'}</p>
@@ -383,58 +384,10 @@ const CTREE = (c) => `<svg viewBox="0 0 120 190" aria-hidden="true" fill="none" 
   <g fill="${c}" fill-opacity=".45"><circle cx="60" cy="140" r="3"/><circle cx="60" cy="122" r="3"/><circle cx="30" cy="98" r="3"/><circle cx="92" cy="84" r="3"/><circle cx="60" cy="62" r="3"/></g>
 </svg>`;
 
-/* Decorul fiecărei zone (desenat în SVG, câte unul pe modul) */
-function zoneScene(mi, c) {
-  const id = 'z' + mi;
-  const sky = [['#FFF3C4', '#CDEFD6'], ['#D6F3F5', '#BFE9E4'], ['#DCEBFA', '#CFE6F7'], ['#FFE6CC', '#FFD9B0'], ['#D9CFE8', '#E9C7D6'], ['#DCD3F5', '#C9C2EE'], ['#FFE9B8', '#CFE8D8']][mi] || ['#EEF8F1', '#D3EADB'];
-  const tree = (x, y, k, f) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-2.5" y="-4" width="5" height="16" rx="2" fill="#7A5A3A"/><circle cx="0" cy="-14" r="13" fill="${f}"/><circle cx="-9" cy="-6" r="9" fill="${f}"/><circle cx="9" cy="-6" r="9" fill="${f}"/></g>`;
-  const palm = (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})" fill="none" stroke-linecap="round"><path d="M0 12 Q3 -6 0 -22" stroke="#8A6A3A" stroke-width="4"/><g stroke="#1E9A56" stroke-width="5"><path d="M0 -22 Q-14 -30 -24 -20"/><path d="M0 -22 Q14 -30 24 -20"/><path d="M0 -22 Q-8 -36 -20 -36"/><path d="M0 -22 Q8 -36 20 -36"/><path d="M0 -22 Q0 -38 2 -42"/></g></g>`;
-  let art = '';
-  if (mi === 0) art = `<circle cx="470" cy="30" r="20" fill="#FFC23D"/><circle cx="470" cy="30" r="30" fill="#FFC23D" opacity=".25"/>
-    <path d="M0 78 Q150 50 300 70 T580 62 V110 H0Z" fill="#9BD98A"/><path d="M0 92 Q200 70 380 86 T580 82 V110 H0Z" fill="#5FC06B"/>
-    ${tree(60, 70, 1.25, '#22A55B')}${tree(110, 78, .9, '#3FB96C')}${palm(520, 78, 1)}${tree(400, 80, .8, '#3FB96C')}
-    <g fill="#fff"><circle cx="200" cy="92" r="3"/><circle cx="250" cy="98" r="3"/><circle cx="320" cy="94" r="3"/></g><g fill="#FFC23D"><circle cx="200" cy="92" r="1.3"/><circle cx="250" cy="98" r="1.3"/><circle cx="320" cy="94" r="1.3"/></g>`;
-  if (mi === 1) art = `<path d="M0 70 Q140 44 290 62 T580 52 V110 H0Z" fill="#8FD6A8"/>
-    <path d="M-10 96 C120 60 220 110 340 82 S520 60 590 84 V110 H-10Z" fill="#12B5A6"/><path d="M-10 102 C120 70 220 116 340 90 S520 70 590 92 V110 H-10Z" fill="#5FD3C9"/>
-    <g fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"><path d="M70 92 q10 -6 20 0"/><path d="M230 100 q10 -6 20 0"/><path d="M420 86 q10 -6 20 0"/></g>
-    <g font-family="Lexend,Arial,sans-serif" font-weight="600" font-size="15" fill="#fff"><g transform="translate(140 84) rotate(-8)"><rect x="-11" y="-14" width="22" height="20" rx="5" fill="#0E6B4F"/><text x="0" y="1" text-anchor="middle">a</text></g><g transform="translate(300 90) rotate(6)"><rect x="-11" y="-14" width="22" height="20" rx="5" fill="#1F8CC9"/><text x="0" y="1" text-anchor="middle">b</text></g><g transform="translate(480 76) rotate(-4)"><rect x="-11" y="-14" width="22" height="20" rx="5" fill="#FF8A3D"/><text x="0" y="1" text-anchor="middle">c</text></g></g>
-    ${palm(40, 66, .9)}${tree(545, 56, .8, '#22A55B')}`;
-  if (mi === 2) art = `<path d="M0 110 V52 Q60 40 150 50 L190 110Z" fill="#6FBF8B"/><path d="M580 110 V46 Q500 38 430 50 L390 110Z" fill="#6FBF8B"/>
-    <path d="M150 110 Q290 86 430 110Z" fill="#1F8CC9" opacity=".55"/>
-    <path d="M150 58 Q290 96 430 58" fill="none" stroke="#8A6A3A" stroke-width="5"/><path d="M150 40 Q290 78 430 40" fill="none" stroke="#C9A66B" stroke-width="2.5"/>
-    <g stroke="#C9A66B" stroke-width="2.5">${[180, 215, 250, 290, 330, 365, 400].map(x => { const t = (x - 150) / 280, y = 58 + 76 * t * (1 - t); return `<path d="M${x} ${(y - 18).toFixed(1)} V${y.toFixed(1)}"/>`; }).join('')}</g>
-    <rect x="143" y="30" width="8" height="34" rx="3" fill="#7A5A3A"/><rect x="429" y="30" width="8" height="34" rx="3" fill="#7A5A3A"/>
-    ${tree(60, 46, 1, '#22A55B')}${palm(520, 46, .9)}`;
-  if (mi === 3) { const hut = (x, y, k, r) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-20" y="-4" width="40" height="26" rx="3" fill="#F6E3C5"/><path d="M-28 -2 L0 -30 L28 -2Z" fill="${r}"/><rect x="-6" y="6" width="12" height="16" rx="2" fill="#8A5A3A"/><rect x="9" y="2" width="8" height="8" rx="1.5" fill="#FFD27A"/></g>`;
-    art = `<path d="M0 82 Q160 58 320 74 T580 68 V110 H0Z" fill="#B9DE9A"/><path d="M0 98 Q200 82 400 94 T580 90 V110 H0Z" fill="#8CCB7A"/>
-    ${hut(150, 70, 1, '#FF8A3D')}${hut(250, 78, .8, '#E0457B')}${hut(390, 72, 1.05, '#1F8CC9')}${hut(480, 80, .75, '#FF8A3D')}
-    <path d="M320 84 V44" stroke="#7A5A3A" stroke-width="3"/><path d="M320 44 h22 l-6 7 6 7 h-22z" fill="#FFC23D"/>
-    ${palm(50, 84, 1)}${tree(545, 80, .9, '#22A55B')}`; }
-  if (mi === 4) art = `<circle cx="110" cy="30" r="15" fill="#FFF6D8"/><circle cx="116" cy="26" r="13" fill="${sky[0]}"/>
-    <path d="M0 84 Q180 70 340 82 T580 76 V110 H0Z" fill="#6F9A8A"/><path d="M0 96 Q200 86 380 96 T580 92 V110 H0Z" fill="#4E8272"/>
-    <g fill="none" stroke="#4A3B45" stroke-width="3.5" stroke-linecap="round"><path d="M220 92 V52 M220 66 L204 52 M220 60 L236 44 M236 44 L246 46"/><path d="M450 90 V58 M450 70 L466 56 M450 64 L438 52"/></g>
-    <g fill="#fff" opacity=".55"><rect x="20" y="70" width="170" height="9" rx="4.5"/><rect x="280" y="62" width="210" height="9" rx="4.5"/><rect x="380" y="78" width="180" height="8" rx="4"/></g>
-    <g fill="#FFE27A"><circle cx="160" cy="56" r="4"/><circle cx="330" cy="46" r="3.5"/><circle cx="520" cy="54" r="4"/></g><g fill="#FFE27A" opacity=".3"><circle cx="160" cy="56" r="9"/><circle cx="330" cy="46" r="8"/><circle cx="520" cy="54" r="9"/></g>
-    <g stroke="#2F6B58" stroke-width="2.5" stroke-linecap="round"><path d="M70 98 V78 M78 98 V82 M86 98 V76 M540 96 V78 M548 96 V84"/></g>`;
-  if (mi === 5) { const cren = (x, y, w) => Array.from({ length: Math.floor(w / 16) }, (_, i) => `<rect x="${x + i * 16}" y="${y - 7}" width="9" height="8" fill="#8E86B8"/>`).join('');
-    art = `<path d="M0 90 Q200 76 380 88 T580 84 V110 H0Z" fill="#9CCB9A"/>
-    <rect x="150" y="50" width="280" height="50" fill="#A9A2CF"/>${cren(152, 50, 280)}
-    <rect x="130" y="28" width="46" height="72" fill="#8E86B8"/>${cren(131, 28, 46)}<rect x="404" y="28" width="46" height="72" fill="#8E86B8"/>${cren(405, 28, 46)}
-    <path d="M266 100 V74 a24 24 0 0 1 48 0 V100Z" fill="#5A4E96"/>
-    <rect x="280" y="78" width="20" height="16" rx="3" fill="#FFC23D"/><path d="M284 78 v-5 a6 6 0 0 1 12 0 v5" fill="none" stroke="#FFC23D" stroke-width="3"/>
-    <rect x="148" y="44" width="10" height="14" rx="5" fill="#5A4E96"/><rect x="422" y="44" width="10" height="14" rx="5" fill="#5A4E96"/>
-    <path d="M153 28 V10" stroke="#5A4E96" stroke-width="2.5"/><path d="M153 10 h16 l-5 5 5 5 h-16z" fill="#E0457B"/>
-    ${tree(60, 84, 1, '#22A55B')}${palm(525, 86, .95)}`; }
-  if (mi === 6) art = `<circle cx="290" cy="40" r="30" fill="#FFC23D" opacity=".45"/>
-    <path d="M0 92 Q200 80 380 90 T580 86 V110 H0Z" fill="#9CCB9A"/>
-    <path d="M190 100 h200 v-6 h-10 v-6 h-10 v-6 H210 v6 h-10 v6 h-10z" fill="#E9DFC6"/>
-    <g fill="#F7F0DD">${[222, 252, 282, 312, 342].map(x => `<rect x="${x}" y="46" width="12" height="36" rx="2"/>`).join('')}</g>
-    <rect x="212" y="40" width="156" height="8" rx="2" fill="#E9DFC6"/><path d="M206 40 L290 12 L374 40Z" fill="#0E6B4F"/>
-    <g transform="translate(290 30)" fill="none" stroke="#FFC23D" stroke-width="2" stroke-linecap="round"><path d="M0 -8 V6 M-10 -5 H10 M-10 -5 l-4 8 h8z M10 -5 l-4 8 h8z"/></g>
-    ${palm(90, 86, 1.05)}${tree(140, 88, .8, '#3FB96C')}${palm(490, 84, 1)}${tree(440, 90, .75, '#22A55B')}`;
-  return `<svg viewBox="0 0 580 110" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="580" height="110" fill="url(#${id})"/>${art}</svg>`;
-}
+/* Decorul fiecărei zone: ilustrațiile din assets/zone-1.webp ... zone-7.webp */
+function zoneScene(mi) { return `<img src="assets/zone-${mi + 1}.webp" alt="" loading="lazy" decoding="async">`; }
 
+const LEAF = '<svg viewBox="0 0 100 140" aria-hidden="true"><path d="M50 138 C6 112 -6 56 50 4 C106 56 94 112 50 138Z" fill="currentColor"/><g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"><path d="M50 130 V22"/><path d="M50 104 L24 84 M50 104 L76 84 M50 78 L22 56 M50 78 L78 56 M50 52 L32 36 M50 52 L68 36"/></g></svg>';
 function renderMap() {
   if (!S.avatar) return go('#/ghid');
   const doneN = ALL.filter(l => S.done[l.id]).length;
@@ -449,7 +402,8 @@ function renderMap() {
     const mDone = m.lessons.filter(l => S.done[l.id]).length;
     const firstIdx = ALL.findIndex(l => l.mi === mi);
     const unitLocked = !isUnlocked(ALL[firstIdx]);
-    html += `<section class="unit${unitLocked ? ' locked' : ''}" style="--mc:${m.color}" aria-label="Modulul ${mi + 1}: ${esc(m.title)}">
+    html += `<section class="unit biome b${mi}${unitLocked ? ' locked' : ''}" style="--mc:${m.color}" aria-label="Modulul ${mi + 1}: ${esc(m.title)}">
+      <div class="biome-bg" aria-hidden="true"><span class="bb-img" style="background-image:url(assets/zone-${mi + 1}.webp)"></span>${unitLocked ? '' : Array.from({ length: 6 }, (_, k) => `<i class="ff" style="--i:${k};left:${6 + (k * 41) % 88}%;top:${22 + (k * 29) % 70}%"></i>`).join('')}</div>
       <div class="deco deco-l">${CTREE(m.color)}</div><div class="deco deco-r">${CTREE(m.color)}</div>
       <div class="scene" aria-hidden="true">${zoneScene(mi, m.color)}</div>
       <div class="unit-banner"><i>${I[m.icon]}</i><div class="t"><small>Modulul ${mi + 1}: ${esc(m.zone || '')}</small><b>${esc(m.title)}</b></div><span class="p">${mDone}/${m.lessons.length}</span></div>
@@ -706,7 +660,7 @@ function openLesson(id) {
   let pos = 0, mistakes = 0, firstTry = 0, graded = 0;
   let sel = null, checked = false, orderAns = [], matchLeft = null, matchDone = 0, matchErr = false, spotSel = new Set(), flipped = new Set();
 
-  overlay.innerHTML = `<div class="lesson" role="dialog" aria-modal="true" aria-label="${esc(L.title)}" style="--mc:${L.m.color}">
+  overlay.innerHTML = `<div class="lesson" role="dialog" aria-modal="true" aria-label="${esc(L.title)}" style="--mc:${L.m.color};--zi:url(assets/zone-${L.mi + 1}.webp)">
     <div class="l-top"><button class="x" id="lx" aria-label="Închide lecția">${I.x}</button><div class="bar"><div id="lbar" style="width:0"></div></div>${sndBtn()}</div>
     <div class="phases" id="phases">${['Descoperă', 'Exersează', 'Pe scurt'].map((p, i) => (i === 2 && !hasRecap) ? '' : `<span data-p="${i}">${p}</span>`).join('')}</div>
     <div class="l-body" id="lbody"></div>
