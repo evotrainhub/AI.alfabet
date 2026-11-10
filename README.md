@@ -1,4 +1,4 @@
-# AI pas cu pas · EvoTrainHub
+# AI Alfabet · EvoTrainHub
 
 Curs interactiv gratuit despre inteligența artificială, pentru începători: 7 module, 28 de lecții, hartă de progres, exerciții, certificat și blog.
 
@@ -11,7 +11,7 @@ Curs interactiv gratuit despre inteligența artificială, pentru începători: 7
 
 ## 2. Primirea e-mailurilor și a răspunsurilor (Google Sheets)
 
-1. Creează un Google Sheet gol, de ex. „AI pas cu pas – date”.
+1. Creează un Google Sheet gol, de ex. „AI Alfabet – date”.
 2. În Sheet: **Extensii → Apps Script**. Șterge codul existent și lipește tot conținutul din `apps-script.gs`.
 3. Completează `LINK_APLICATIE` cu adresa de la pasul 1. Salvează.
 4. **Implementare → Implementare nouă** → tip: *Aplicație web*.
@@ -54,6 +54,25 @@ js/config.js        setări (de completat)
 js/content.js       modulele și lecțiile
 js/blog-posts.js    articolele de blog
 js/app.js           logica aplicației
-assets/             logo și iconiță
+assets/             logo, iconițe, imagine de distribuire
+manifest.webmanifest, sw.js   instalarea ca aplicație și lucrul fără internet
 apps-script.gs      codul pentru Google Sheets (nu se urcă pe GitHub, se lipește în Apps Script)
 ```
+
+## 7. Noutăți în versiunea 2
+
+**Ce urci pe GitHub:** tot conținutul folderului, inclusiv fișierele noi din rădăcină: `manifest.webmanifest` și `sw.js`. Ele trebuie să stea lângă `index.html`, nu într-un subfolder.
+
+**Instalare pe telefon (PWA).** Butonul „Instalează aplicația” apare pe prima pagină, pe hartă și în „Despre”. Pe Android (Chrome, Edge, Samsung Internet) deschide fereastra de instalare; pe iPhone arată cei trei pași din Safari; în browserul din Facebook/Instagram/LinkedIn explică întâi cum se deschide în browserul telefonului.
+
+**La fiecare actualizare:** deschide `sw.js` și schimbă `aialfabet-v2` în `v3`, `v4` ... Astfel telefoanele care au aplicația instalată primesc sigur varianta nouă.
+
+**Autor și rețele (`js/config.js`).** Completează `AUTHOR.facebook`, `AUTHOR.linkedin` și `BRAND_SOCIAL`. Un link gol ascunde butonul. Pentru fotografie: pune o imagine pătrată în `assets/` și scrie calea la `AUTHOR.photo`.
+
+**Iconița și imaginea de distribuire.** Iconițele sunt `assets/app-*.png`. Imaginea care apare când linkul e distribuit pe Facebook/LinkedIn este `assets/og.png` (1200×630). Dacă muți aplicația pe alt domeniu, schimbă cele două adrese `og:url` și `og:image` din `index.html` și `APP_URL` din `config.js`.
+
+**Statistici.** Apar două evenimente noi: `click_instalare` și `click_social`. Ca să fie înregistrate, lipește din nou `apps-script.gs` în Apps Script și publică o *Versiune nouă* (vezi nota de la pasul 2). Apoi rulează o dată `creeazaStatistici`.
+
+**Sunete și vibrații.** Sunt pornite implicit; butonul cu difuzor (pe hartă și în lecție) le oprește. Vibrațiile merg doar pe Android.
+
+**Replicile ghizilor.** Sunt în `js/app.js`, în blocul `VOICE`. Le poți rescrie liber.
