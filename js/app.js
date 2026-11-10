@@ -91,20 +91,53 @@ function tone(seq) {
   } catch {}
 }
 const buzz = p => { if (S.mute) return; try { if (navigator.vibrate) navigator.vibrate(p); } catch {} };
+// Sunetele sunt fișiere audio (assets/snd/*.mp3); dacă nu pot fi redate, rămâne varianta sintetizată.
+const SND = {}; let sndReady = false;
+['corect', 'gresit', 'pop', 'lectie', 'modul'].forEach(n => { try { const a = new Audio('assets/snd/' + n + '.mp3'); a.preload = 'auto'; SND[n] = a; } catch {} });
+function play(name, fallback) {
+  if (S.mute) return;
+  const a = SND[name];
+  if (!a) return tone(fallback);
+  try { a.muted = false; a.currentTime = 0; a.volume = 1; const p = a.play(); if (p && p.catch) p.catch(() => tone(fallback)); } catch { tone(fallback); }
+}
+// Telefoanele permit sunetul abia după prima atingere: „dezlegăm” atunci fișierele și vocea.
+function unlockAudio() {
+  if (sndReady) return; sndReady = true;
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+  Object.values(SND).forEach(a => { try { a.muted = true; const p = a.play(); if (p && p.then) p.then(() => { if (a.muted) { a.pause(); a.currentTime = 0; a.muted = false; } }).catch(() => { a.muted = false; }); } catch {} });
+  try { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch {}
+}
+document.addEventListener('pointerdown', unlockAudio, { once: true, capture: true });
 const SFX = {
   tap: () => tone([[540, .05, 'triangle', .04]]),
-  ok: () => { tone([[660, .12], [880, .22]]); buzz(30); },
-  bad: () => { tone([[233, .16, 'sine', .13], [175, .28, 'sine', .13]]); buzz([50, 60, 50]); },
-  done: () => { tone([[523, .14], [659, .14], [784, .14], [1047, .45]]); buzz([40, 40, 40, 40, 120]); },
+  ok: () => { play('corect', [[784, .14], [1175, .3]]); buzz(30); },
+  bad: () => { play('gresit', [[277, .18, 'sine', .14], [208, .32, 'sine', .14]]); buzz([50, 60, 50]); },
+  pop: () => { play('pop', [[700, .08]]); buzz(15); },
+  done: mod => { play(mod ? 'modul' : 'lectie', [[523, .14], [659, .14], [784, .14], [1047, .45]]); buzz([40, 40, 40, 40, 120]); },
   walk: () => tone([[392, .08, 'sine', .05], [494, .1, 'sine', .05]])
 };
+
+/* ---------------- ghidul vorbește (vocea de sinteză a telefonului) ---------------- */
+const TONE = { ana: [1.25, 1.05], mihai: [0.8, 1.05], ioana: [1.1, 1], radu: [0.7, .95], elena: [1, .9], andrei: [0.9, 1.1] };
+let roVoice = null;
+function findVoice() { try { const v = speechSynthesis.getVoices(); roVoice = v.find(x => /^ro/i.test(x.lang) && x.localService) || v.find(x => /^ro/i.test(x.lang)) || null; } catch {} }
+if (window.speechSynthesis) { findVoice(); try { speechSynthesis.addEventListener('voiceschanged', findVoice); } catch {} }
+function hush() { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch {} }
+function say(text, delay, who) {
+  if (S.mute || C.GUIDE_SPEECH === false || !window.speechSynthesis || !text) return;
+  if (!roVoice) findVoice();
+  if (!roVoice) return;                       // fără voce românească pe dispozitiv, ghidul rămâne doar scris
+  const id = TONE[who] ? who : TONE[S.avatar] ? S.avatar : 'ana';
+  const go = () => { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, ' ')); u.lang = 'ro-RO'; u.voice = roVoice; u.pitch = TONE[id][0]; u.rate = TONE[id][1]; speechSynthesis.speak(u); } catch {} };
+  if (delay) setTimeout(go, delay); else go();
+}
 const sndBtn = () => `<button class="snd" data-snd aria-pressed="${!S.mute}" aria-label="Sunete și vibrații: ${S.mute ? 'oprite' : 'pornite'}" title="Sunete și vibrații">${S.mute ? I.sndOff : I.sndOn}</button>`;
 document.addEventListener('click', e => {
   const t = e.target.closest && e.target.closest('[data-snd]');
   if (t) {
     S.mute = !S.mute; save();
     document.querySelectorAll('[data-snd]').forEach(b => { b.innerHTML = S.mute ? I.sndOff : I.sndOn; b.setAttribute('aria-pressed', !S.mute); b.setAttribute('aria-label', 'Sunete și vibrații: ' + (S.mute ? 'oprite' : 'pornite')); });
-    toast(S.mute ? 'Sunete și vibrații oprite.' : 'Sunete și vibrații pornite.'); if (!S.mute) SFX.ok();
+    toast(S.mute ? 'Sunete, voce și vibrații oprite.' : 'Sunete, voce și vibrații pornite.'); if (S.mute) hush(); else SFX.ok();
     return;
   }
   if (e.target.closest && e.target.closest('#overlay .choice, #overlay .chip, #overlay .tile, #overlay .phrase, #overlay .fcard, .av-card')) SFX.tap();
@@ -186,6 +219,14 @@ function initInApp() {
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+
+// În browserele din Facebook/Instagram/LinkedIn, linkurile care cer fereastră nouă sunt adesea ignorate:
+// acolo deschidem pagina în aceeași fereastră.
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[target="_blank"]');
+  if (!a || !inApp || !/^https?:/i.test(a.href)) return;
+  e.preventDefault(); setTimeout(() => { location.href = a.href; }, 120);
+});
 
 /* ---------------- autorul și butoanele „Urmărește” ---------------- */
 const AU = C.AUTHOR || {}, BS = C.BRAND_SOCIAL || {};
@@ -357,6 +398,7 @@ function renderGuidePicker() {
     app.querySelectorAll('.av-card').forEach(x => { x.classList.toggle('sel', x === b); x.setAttribute('aria-checked', x === b); });
     $('#avGo').disabled = false;
     const a = AV.find(x => x.id === pick); $('#avQ').innerHTML = `<b>${esc(a.name)}:</b> „${esc(VOICE[a.id].hi)}”`;
+    say(VOICE[a.id].hi, 0, a.id);
   });
   $('#avGo').onclick = () => {
     const first = !S.avatar;
@@ -676,6 +718,9 @@ function openLesson(id) {
     foot.innerHTML = `<div class="in">${left}<button class="btn ${cls}" id="lgo">${txt}</button></div>`;
     $('#lgo').disabled = state === 'check' ? !canCheck() : (state === 'wait');
     $('#lgo').onclick = state === 'check' ? check : next;
+    const one = state === 'check' && queue[pos] && (queue[pos].s.t === 'mcq' || queue[pos].s.t === 'tf');
+    $('#lgo').hidden = one;
+    if (one) foot.querySelector('.fb').innerHTML = '<p class="tap-hint">Atinge răspunsul tău.</p>';
   }
   function canCheck() {
     const st = queue[pos].s;
@@ -695,6 +740,7 @@ function openLesson(id) {
     let h = `<div class="l-in">`;
     if (st.t !== 'info' && st.t !== 'recap') h += `<p class="kind">${KINDS[st.t]}${queue[pos].tries ? '<span class="again">A doua încercare</span>' : ''}</p>`;
     if (st.t === 'info') {
+      if (st.guide) say(st.guide, 250);
       if (st.guide) h += `<div class="guide"><span class="g-av">${avatarSVG(me, { head: true })}</span><p><b>${esc(me.name)}:</b> ${esc(st.guide)}</p></div>`;
       h += `<h2>${esc(st.title)}</h2><div class="info-card">${st.body}</div>${visualHTML(st.visual)}`;
     } else if (st.t === 'recap') {
@@ -739,7 +785,7 @@ function openLesson(id) {
         if (b.dataset.side === 'l') { body.querySelectorAll('[data-side="l"]').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); matchLeft = b; return; }
         if (!matchLeft) { b.classList.add('wrong'); setTimeout(() => b.classList.remove('wrong'), 350); return; }
         if (matchLeft.dataset.i === b.dataset.i) {
-          matchLeft.classList.remove('sel'); matchLeft.classList.add('good'); b.classList.add('good'); matchLeft = null; matchDone++; SFX.ok();
+          matchLeft.classList.remove('sel'); matchLeft.classList.add('good'); b.classList.add('good'); matchLeft = null; matchDone++; SFX.pop();
           if (matchDone === st.pairs.length) {
             checked = true; graded++; if (!matchErr && !queue[pos].tries) firstTry++;
             foot.dataset.mode = 'info'; footer('good', { title: matchErr ? 'Gata, toate perechile!' : 'Perfect!', text: esc(st.explain || '') });
@@ -764,7 +810,7 @@ function openLesson(id) {
         if (k >= items.length || b.disabled) return;
         const it = items[k], ok = +b.dataset.b === it.b;
         const card = $('#sCard');
-        if (ok) { cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card good'; SFX.ok(); }
+        if (ok) { cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card good'; SFX.pop(); }
         else { errs++; mistakes++; SFX.bad(); cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card wrong'; card.innerHTML = `${esc(it.text)}<small>Locul corect: ${esc(st.buckets[it.b])}</small>`; }
         body.querySelectorAll('.bucket').forEach(x => x.disabled = true);
         setTimeout(() => {
@@ -786,7 +832,7 @@ function openLesson(id) {
       body.querySelectorAll('.choice').forEach(b => b.onclick = () => {
         if (checked) return;
         body.querySelectorAll('.choice').forEach(x => x.classList.remove('sel'));
-        b.classList.add('sel'); sel = +b.dataset.i; refreshBtn();
+        b.classList.add('sel'); sel = +b.dataset.i; check();
       });
     }
     if (st.t === 'spot') {
@@ -834,8 +880,8 @@ function openLesson(id) {
     }
     if (ok) {
       if (!queue[pos].tries) firstTry++;
-      SFX.ok();
-      footer('good', { title: pick(voice().ok), text: [custom, st.explain].filter(Boolean).map(t => esc(t)).join('<br><br>') });
+      SFX.ok(); const okT = pick(voice().ok); say(okT, 550);
+      footer('good', { title: okT, text: [custom, st.explain].filter(Boolean).map(t => esc(t)).join('<br><br>') });
     } else {
       mistakes++; SFX.bad();
       const again = queue[pos].tries < 2;
@@ -844,11 +890,12 @@ function openLesson(id) {
       if (st.t === 'order') ans = `<strong style="display:block;margin-top:4px">Ordinea corectă:</strong>${correctText}`;
       else if (st.t === 'spot') ans = 'Cele marcate cu verde punctat îți scăpaseră.';
       else ans = `Răspuns corect: <strong>${esc(correctText)}</strong>`;
-      footer('bad', { title: pick(voice().bad), text: (custom ? esc(custom) + '<br>' : '') + ans + (st.explain ? '<br><br>' + esc(st.explain) : '') + (again ? '<br><i>Revenim la întrebare la final.</i>' : '') });
+      const badT = pick(voice().bad); say(badT, 650);
+      footer('bad', { title: badT, text: (custom ? esc(custom) + '<br>' : '') + ans + (st.explain ? '<br><br>' + esc(st.explain) : '') + (again ? '<br><i>Revenim la întrebare la final.</i>' : '') });
     }
   }
 
-  function next() { pos++; if (pos >= queue.length) return finish(); draw(); }
+  function next() { hush(); pos++; if (pos >= queue.length) return finish(); draw(); }
 
   function finish() {
     const already = !!S.done[L.id];
@@ -883,7 +930,7 @@ function openLesson(id) {
     foot.className = 'l-foot'; foot.innerHTML = `<div class="in"><div class="fb"></div><button class="btn" id="lgo">Continuă</button></div>`;
     $('#lgo').onclick = () => go(askSurvey ? '#/chestionar' : (allDone() && !already ? '#/certificat' : '#/drum'));
     $('#lgo').focus();
-    confetti(); SFX.done();
+    confetti(); SFX.done(modFinished); say(modFinished ? voice().mod : voice().done, modFinished ? 2600 : 1700);
   }
 
   overlay.onkeydown = e => {
