@@ -24,8 +24,8 @@ window.CONFIG = {
   CERT_SIGNATURE: 'EvoTrainHub',
   CERT_SIGNATURE_ROLE: 'Program de alfabetizare în domeniul AI',
 
-  // Ghidul citește cu voce tare replicile (vocea românească a telefonului). Pune false ca să rămână doar sunetele.
-  GUIDE_SPEECH: true,
+  // Ghidul NU mai citește replicile cu voce tare. (true = le citește cu vocea de sinteză a telefonului.)
+  GUIDE_SPEECH: false,
 
   // ---- Autorul aplicației și butoanele „Urmărește” ----
   // Completează linkurile. Un link lăsat gol ('') ascunde butonul respectiv.
