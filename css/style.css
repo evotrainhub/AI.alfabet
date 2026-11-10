@@ -678,3 +678,8 @@ body{background:
 .l-top .x,.l-top .snd{background:rgba(255,255,255,.9)}
 .phases span{box-shadow:0 2px 0 rgba(0,0,0,.06)}
 @media (prefers-reduced-motion:reduce){.unit .scene img{animation:none!important}}
+
+/* răspuns cu o singură atingere */
+.tap-hint{margin:0;color:var(--muted);font-size:15px;text-align:center;width:100%}
+.l-foot .in:has(#lgo[hidden]){justify-content:center}
+#lgo[hidden]{display:none}
