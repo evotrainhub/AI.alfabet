@@ -24,7 +24,12 @@ const I = {
   fire: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.5 5 6 5 11a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 0 2 1 3 2 3 0-3-1.5-5.5.5-9z"/></svg>',
   thumb: sv('<path d="M7 11v9H4v-9zM7 11l4-8a2.5 2.5 0 0 1 2.5 2.5V9h5.5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/>'),
   no: sv('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'),
-  left: sv('<path d="M15 6l-6 6 6 6"/>')
+  left: sv('<path d="M15 6l-6 6 6 6"/>'),
+  down: sv('<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>'),
+  sndOn: sv('<path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>'),
+  sndOff: sv('<path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>'),
+  facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="18.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19" fill="currentColor">f</text></svg>',
+  linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="17.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="14" fill="currentColor">in</text></svg>'
 };
 
 /* ---------------- stare ---------------- */
@@ -47,7 +52,7 @@ const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { c
 
 /* ---------------- trimitere date ---------------- */
 function send(payload) {
-  if (!C.SHEETS_URL) { console.info('[AI pas cu pas] SHEETS_URL nu e setat; nu trimit:', payload); return; }
+  if (!C.SHEETS_URL) { console.info('[AI Alfabet] SHEETS_URL nu e setat; nu trimit:', payload); return; }
   try {
     fetch(C.SHEETS_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }).catch(() => {});
   } catch {}
@@ -69,6 +74,137 @@ function track(name, value) { send({ type: 'event', name, value: value || '', so
 /* ---------------- utilitare UI ---------------- */
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
+/* ---------------- sunete și vibrații ---------------- */
+let AC;
+function tone(seq) {
+  if (S.mute) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+    let t = AC.currentTime + 0.01;
+    seq.forEach(([f, d, type, v]) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = type || 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v || 0.11, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d + 0.03); t += d * 0.72;
+    });
+  } catch {}
+}
+const buzz = p => { if (S.mute) return; try { if (navigator.vibrate) navigator.vibrate(p); } catch {} };
+const SFX = {
+  tap: () => tone([[540, .05, 'triangle', .04]]),
+  ok: () => { tone([[660, .12], [880, .22]]); buzz(30); },
+  bad: () => { tone([[233, .16, 'sine', .13], [175, .28, 'sine', .13]]); buzz([50, 60, 50]); },
+  done: () => { tone([[523, .14], [659, .14], [784, .14], [1047, .45]]); buzz([40, 40, 40, 40, 120]); },
+  walk: () => tone([[392, .08, 'sine', .05], [494, .1, 'sine', .05]])
+};
+const sndBtn = () => `<button class="snd" data-snd aria-pressed="${!S.mute}" aria-label="Sunete și vibrații: ${S.mute ? 'oprite' : 'pornite'}" title="Sunete și vibrații">${S.mute ? I.sndOff : I.sndOn}</button>`;
+document.addEventListener('click', e => {
+  const t = e.target.closest && e.target.closest('[data-snd]');
+  if (t) {
+    S.mute = !S.mute; save();
+    document.querySelectorAll('[data-snd]').forEach(b => { b.innerHTML = S.mute ? I.sndOff : I.sndOn; b.setAttribute('aria-pressed', !S.mute); b.setAttribute('aria-label', 'Sunete și vibrații: ' + (S.mute ? 'oprite' : 'pornite')); });
+    toast(S.mute ? 'Sunete și vibrații oprite.' : 'Sunete și vibrații pornite.'); if (!S.mute) SFX.ok();
+    return;
+  }
+  if (e.target.closest && e.target.closest('#overlay .choice, #overlay .chip, #overlay .tile, #overlay .phrase, #overlay .fcard, .av-card')) SFX.tap();
+});
+
+/* ---------------- vocea fiecărui ghid ---------------- */
+const VOICE = {
+  ana:    { hi: 'Am o mie de întrebări despre AI. Hai să le lămurim împreună!', map: 'Oare ce aflăm azi?',
+            ok: ['Aha, deci așa e!', 'Corect! Ce interesant.', 'Exact asta mă întrebam!', 'Bravo, ai prins ideea!'],
+            bad: ['Hm, și eu aș fi zis la fel.', 'Nu chiar. Hai să vedem de ce.', 'Bună încercare! Uite unde e șmecheria.'],
+            done: 'Încă o întrebare lămurită. Mai am câteva!', mod: 'Am aflat atâtea! Abia aștept zona următoare.' },
+  mihai:  { hi: 'Fără teorie inutilă. Îți arăt ce te ajută mâine la birou.', map: 'Cinci minute bine folosite. Începem?',
+            ok: ['Corect. Mai departe!', 'Exact. Timp câștigat.', 'Bifat!', 'Rapid și bine.'],
+            bad: ['Nu-i bai. Reținem și mergem mai departe.', 'Aproape. Uite varianta bună.', 'Greșeală utilă: acum știi.'],
+            done: 'Gata lecția. Asta chiar se folosește.', mod: 'Zonă terminată, fără timp pierdut.' },
+  ioana:  { hi: 'Luăm totul pe rând, clar și ordonat. Pasul 1: alege-mă.', map: 'Următorul punct de pe listă te așteaptă.',
+            ok: ['Corect. Bifat pe listă.', 'Exact, punct cu punct.', 'Foarte ordonat gândit!', 'Corect!'],
+            bad: ['Nu chiar. Hai să o luăm pe rând.', 'Aproape. Uite pasul care lipsea.', 'O notăm și revenim la ea.'],
+            done: 'Încă o lecție bifată. Lista se scurtează.', mod: 'Zonă încheiată. Totul e pe listă, bifat.' },
+  radu:   { hi: 'Nu cred nimic pe cuvânt, nici ce spune AI-ul. Verificăm împreună.', map: 'Să vedem dacă lecția următoare rezistă la verificare.',
+            ok: ['Corect. Am verificat și eu.', 'Așa e, se confirmă.', 'Exact. Dovada e mai jos.', 'Bine gândit, nu te-ai lăsat păcălit.'],
+            bad: ['Nu chiar. Bine că verificăm.', 'Aici te-a păcălit formularea.', 'Greșit, dar ai motiv să întrebi de ce.'],
+            done: 'Lecție verificată de două ori. Rezistă.', mod: 'Am trecut zona fără să luăm nimic de bun fără dovezi.' },
+  elena:  { hi: 'Am învățat multe la viața mea. AI-ul e doar următorul lucru. Mergem liniștit.', map: 'Fără grabă. Câte o lecție pe rând.',
+            ok: ['Foarte bine!', 'Corect, exact așa.', 'Bravo, se vede că ai fost atent.', 'Așa e. Felicitări!'],
+            bad: ['Nu-i nimic, așa se învață.', 'Nu chiar. Citește explicația pe îndelete.', 'Se întâmplă. Important e că acum știi.'],
+            done: 'Încă un pas făcut. Bine lucrat!', mod: 'O zonă întreagă parcursă. Sunt mândră de tine.' },
+  andrei: { hi: 'Încerc orice unealtă nouă. Hai să vedem ce poate și asta!', map: 'Ce descoperim azi?',
+            ok: ['Da! Exact!', 'Corect! Mergem mai adânc.', 'Bravo, exploratorule!', 'Asta e! Mai departe.'],
+            bad: ['Ups! Și eu am căzut în asta.', 'Nu chiar. Dar așa se explorează.', 'Greșit, dar acum știm drumul.'],
+            done: 'Încă o descoperire! Ce urmează?', mod: 'Zonă explorată! Următoarea pare și mai interesantă.' }
+};
+const voice = () => VOICE[myAvatar().id] || VOICE.ana;
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ---------------- instalare ca aplicație (PWA) ---------------- */
+const UA = navigator.userAgent || '';
+const inApp = /FBAN|FBAV|FB_IAB|Instagram|LinkedInApp|Line\//i.test(UA);
+const isIOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+window.addEventListener('appinstalled', () => { deferredInstall = null; track('click_instalare', 'instalata'); toast('Aplicația e pe ecranul tău. O găsești ca „AI Alfabet”.'); document.querySelectorAll('[data-install]').forEach(b => b.remove()); });
+const installBtn = cls => standalone() ? '' : `<button class="btn ghost ${cls || ''}" data-install>${I.down}Instalează aplicația</button>`;
+const appUrl = () => C.APP_URL || location.href.split('#')[0];
+function copyLink() {
+  const url = appUrl(), ok = () => toast('Linkul a fost copiat.');
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(ok, () => prompt('Copiază linkul:', url)); else prompt('Copiază linkul:', url);
+}
+function installHelp() {
+  const d = $('#ios'); let h;
+  if (inApp) h = `<p>Acum ești în browserul din Facebook, Instagram sau LinkedIn. De aici aplicația nu se poate instala, iar progresul se poate pierde.</p>
+    <ol class="steps-list"><li>Apasă pe <b>⋯</b> (sus, în colț).</li><li>Alege <b>„Deschide în browser”</b> (Chrome sau Safari).</li><li>Acolo apasă din nou <b>„Instalează aplicația”</b>.</li></ol>
+    <p><button class="btn ghost small" type="button" id="iosCopy">Copiază linkul aplicației</button></p>`;
+  else if (isIOS) h = `<p>Pe iPhone și iPad, instalarea se face din Safari, în trei pași:</p>
+    <ol class="steps-list"><li>Apasă butonul <b>Partajează</b> (pătratul cu săgeată în sus).</li><li>Derulează și alege <b>„Adaugă pe ecranul principal”</b>.</li><li>Apasă <b>„Adaugă”</b>. Iconița apare lângă celelalte aplicații.</li></ol>`;
+  else h = `<p>Browserul tău nu a oferit instalarea automată. O poți face din meniu:</p>
+    <ol class="steps-list"><li>Deschide meniul browserului (<b>⋮</b> sau <b>⋯</b>).</li><li>Alege <b>„Instalează aplicația”</b> sau <b>„Adaugă pe ecranul principal”</b>.</li><li>Confirmă. Iconița apare lângă celelalte aplicații.</li></ol>
+    <p class="fine">Merge cel mai bine în Chrome, Edge sau Samsung Internet.</p>`;
+  $('#iosBody').innerHTML = h;
+  const c = $('#iosCopy'); if (c) c.onclick = copyLink;
+  $('#iosOk').onclick = () => d.close();
+  if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+}
+document.addEventListener('click', e => {
+  if (!(e.target.closest && e.target.closest('[data-install]'))) return;
+  track('click_instalare', inApp ? 'in-app' : deferredInstall ? 'automat' : isIOS ? 'ios' : 'manual');
+  if (deferredInstall && !inApp) { const p = deferredInstall; deferredInstall = null; p.prompt(); if (p.userChoice) p.userChoice.catch(() => {}); return; }
+  installHelp();
+});
+function initInApp() {
+  const b = $('#inapp'); if (!b || !inApp || S.inappOff) return;
+  b.hidden = false;
+  b.innerHTML = `<div class="inapp-in"><p><b>Ești în browserul rețelei de socializare.</b> Ca progresul să rămână salvat, apasă <b>⋯</b> și alege „Deschide în browser”.</p>
+    <button class="btn small" type="button" id="inCopy">Copiază linkul</button><button class="x" type="button" id="inX" aria-label="Închide">${I.x}</button></div>`;
+  $('#inCopy').onclick = copyLink;
+  $('#inX').onclick = () => { b.hidden = true; S.inappOff = true; save(); };
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------------- autorul și butoanele „Urmărește” ---------------- */
+const AU = C.AUTHOR || {}, BS = C.BRAND_SOCIAL || {};
+const soc = (url, kind, label, loc) => url ? `<a class="soc ${kind}" href="${esc(url)}" target="_blank" rel="noopener" data-t="social:${kind}-${loc}"><i>${I[kind]}</i><span>${label}</span></a>` : '';
+function authorBox(loc) {
+  if (!AU.name) return '';
+  const ini = AU.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2);
+  const links = soc(AU.facebook, 'facebook', 'Urmărește pe Facebook', loc) + soc(AU.linkedin, 'linkedin', 'Urmărește pe LinkedIn', loc);
+  return `<aside class="author" aria-label="Autorul aplicației">
+    ${AU.photo ? `<img class="au-ph" src="${esc(AU.photo)}" alt="">` : `<span class="au-ph au-ini" aria-hidden="true">${esc(ini)}</span>`}
+    <div class="au-t"><small>Aplicație creată de</small><b>${esc(AU.name)}</b><span>${esc(AU.role || '')}</span>
+      <p>Scriu despre AI pe înțelesul tuturor: instrumente noi, exemple din practică, reguli europene.</p>
+      ${links ? `<div class="socs">${links}</div>` : ''}</div></aside>`;
+}
+function initFooter() {
+  const f = $('#footSocial'); if (!f) return;
+  f.innerHTML = soc(BS.facebook, 'facebook', 'EvoTrainHub pe Facebook', 'subsol') + soc(BS.linkedin, 'linkedin', 'EvoTrainHub pe LinkedIn', 'subsol');
+}
+
 function updateStats() {
   $('#xp').textContent = S.xp;
   const alive = S.lastDay && (S.lastDay === today() || S.lastDay === (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); })());
@@ -120,12 +256,13 @@ function renderHome() {
       <p>O expediție gratuită în 7 etape prin jungla tehnologiei, pentru oricine vrea să folosească AI la muncă, corect și în siguranță. Fără termeni tehnici, cu un ghid care te însoțește la fiecare pas.</p>
       <div class="cta">
         <a class="btn" href="${started ? '#/drum' : '#/ghid'}"${started ? '' : ' data-t="start:acasa"'}>${started ? 'Continuă drumul' : 'Începe gratuit'}</a>
-        <a class="btn ghost" href="#/blog">Citește blogul</a>
+        ${installBtn()}
       </div>
+      <p class="hero-note">Gratuit · fără cont · 5–7 minute pe lecție</p>
     </div>
     <div class="hero-art" aria-hidden="true">
       <div class="ring"></div>
-      <img src="assets/logo.png" alt="">
+      <img src="assets/app-512.png" alt="">
       ${M.slice(0, 6).map((m, i) => `<span class="orb" style="background:${m.color};left:calc(${orbPos[i][0]}% - 31px);top:calc(${orbPos[i][1]}% - 31px)">${I[m.icon]}</span>`).join('')}
     </div>
   </section>
@@ -139,14 +276,15 @@ function renderHome() {
   <div class="mods">
     ${M.map((m, i) => `<div class="mod-card" style="--mc:${m.color}"><i>${I[m.icon]}</i><div><small>${esc(m.zone || '')}</small><b>${i + 1}. ${esc(m.title)}</b><span>${esc(m.subtitle)}</span></div></div>`).join('')}
   </div>
+  ${authorBox('acasa')}
   ${ctaBox('acasa')}
   <div class="share-row"><button class="btn ghost small" id="shareApp">Trimite unui coleg</button></div>`;
   $('#shareApp').onclick = shareApp;
 }
 const COURSES_URL = C.COURSES_URL || C.SITE_URL, CONTACT_URL = C.CONTACT_URL || C.SITE_URL;
 function ctaBox(loc) {
-  return `<div class="cta-box"><h3>După bazele de aici</h3>
-  <p>Aplicația îți dă bazele. Cursurile EvoTrainHub adaugă exerciții pe situații reale din munca ta, feedback de la formator și răspunsuri la întrebările tale. Pentru instituții și companii, adaptăm programul domeniului vostru.</p>
+  return `<div class="cta-box"><h3>Următorul pas</h3>
+  <p>Aplicația acoperă noțiunile de bază. În cursurile EvoTrainHub lucrăm pe situații din activitatea ta, cu feedback direct de la formator. Pentru instituții și companii, construim programe adaptate domeniului și nivelului echipei.</p>
   <div class="btns"><a class="btn" href="${esc(COURSES_URL)}" target="_blank" rel="noopener" data-t="cursuri:${loc}">Descoperă cursurile AI</a>
   <a class="btn ghost" href="${esc(CONTACT_URL)}" target="_blank" rel="noopener" data-t="training:${loc}">Solicită un training pentru echipă</a></div></div>`;
 }
@@ -210,12 +348,14 @@ function renderGuidePicker() {
       ${AV.map(a => `<button class="av-card${pick === a.id ? ' sel' : ''}" role="radio" aria-checked="${pick === a.id}" data-id="${a.id}">
         <span class="av-fig idle">${avatarSVG(a)}</span><b>${esc(a.name)}</b><small>${esc(a.tag)}</small></button>`).join('')}
     </div>
+    <p class="av-quote" id="avQ" aria-live="polite">${pick ? `<b>${esc(myAvatar().name)}:</b> „${esc(voice().hi)}”` : 'Atinge un ghid ca să afli cum vorbește.'}</p>
     <button class="btn" id="avGo" ${pick ? '' : 'disabled'}>Pornim la drum</button>
   </section>`;
   app.querySelectorAll('.av-card').forEach(b => b.onclick = () => {
     pick = b.dataset.id;
     app.querySelectorAll('.av-card').forEach(x => { x.classList.toggle('sel', x === b); x.setAttribute('aria-checked', x === b); });
     $('#avGo').disabled = false;
+    const a = AV.find(x => x.id === pick); $('#avQ').innerHTML = `<b>${esc(a.name)}:</b> „${esc(VOICE[a.id].hi)}”`;
   });
   $('#avGo').onclick = () => {
     const first = !S.avatar;
@@ -243,14 +383,66 @@ const CTREE = (c) => `<svg viewBox="0 0 120 190" aria-hidden="true" fill="none" 
   <g fill="${c}" fill-opacity=".45"><circle cx="60" cy="140" r="3"/><circle cx="60" cy="122" r="3"/><circle cx="30" cy="98" r="3"/><circle cx="92" cy="84" r="3"/><circle cx="60" cy="62" r="3"/></g>
 </svg>`;
 
+/* Decorul fiecărei zone (desenat în SVG, câte unul pe modul) */
+function zoneScene(mi, c) {
+  const id = 'z' + mi;
+  const sky = [['#FFF3C4', '#CDEFD6'], ['#D6F3F5', '#BFE9E4'], ['#DCEBFA', '#CFE6F7'], ['#FFE6CC', '#FFD9B0'], ['#D9CFE8', '#E9C7D6'], ['#DCD3F5', '#C9C2EE'], ['#FFE9B8', '#CFE8D8']][mi] || ['#EEF8F1', '#D3EADB'];
+  const tree = (x, y, k, f) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-2.5" y="-4" width="5" height="16" rx="2" fill="#7A5A3A"/><circle cx="0" cy="-14" r="13" fill="${f}"/><circle cx="-9" cy="-6" r="9" fill="${f}"/><circle cx="9" cy="-6" r="9" fill="${f}"/></g>`;
+  const palm = (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})" fill="none" stroke-linecap="round"><path d="M0 12 Q3 -6 0 -22" stroke="#8A6A3A" stroke-width="4"/><g stroke="#1E9A56" stroke-width="5"><path d="M0 -22 Q-14 -30 -24 -20"/><path d="M0 -22 Q14 -30 24 -20"/><path d="M0 -22 Q-8 -36 -20 -36"/><path d="M0 -22 Q8 -36 20 -36"/><path d="M0 -22 Q0 -38 2 -42"/></g></g>`;
+  let art = '';
+  if (mi === 0) art = `<circle cx="470" cy="30" r="20" fill="#FFC23D"/><circle cx="470" cy="30" r="30" fill="#FFC23D" opacity=".25"/>
+    <path d="M0 78 Q150 50 300 70 T580 62 V110 H0Z" fill="#9BD98A"/><path d="M0 92 Q200 70 380 86 T580 82 V110 H0Z" fill="#5FC06B"/>
+    ${tree(60, 70, 1.25, '#22A55B')}${tree(110, 78, .9, '#3FB96C')}${palm(520, 78, 1)}${tree(400, 80, .8, '#3FB96C')}
+    <g fill="#fff"><circle cx="200" cy="92" r="3"/><circle cx="250" cy="98" r="3"/><circle cx="320" cy="94" r="3"/></g><g fill="#FFC23D"><circle cx="200" cy="92" r="1.3"/><circle cx="250" cy="98" r="1.3"/><circle cx="320" cy="94" r="1.3"/></g>`;
+  if (mi === 1) art = `<path d="M0 70 Q140 44 290 62 T580 52 V110 H0Z" fill="#8FD6A8"/>
+    <path d="M-10 96 C120 60 220 110 340 82 S520 60 590 84 V110 H-10Z" fill="#12B5A6"/><path d="M-10 102 C120 70 220 116 340 90 S520 70 590 92 V110 H-10Z" fill="#5FD3C9"/>
+    <g fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"><path d="M70 92 q10 -6 20 0"/><path d="M230 100 q10 -6 20 0"/><path d="M420 86 q10 -6 20 0"/></g>
+    <g font-family="Lexend,Arial,sans-serif" font-weight="600" font-size="15" fill="#fff"><g transform="translate(140 84) rotate(-8)"><rect x="-11" y="-14" width="22" height="20" rx="5" fill="#0E6B4F"/><text x="0" y="1" text-anchor="middle">a</text></g><g transform="translate(300 90) rotate(6)"><rect x="-11" y="-14" width="22" height="20" rx="5" fill="#1F8CC9"/><text x="0" y="1" text-anchor="middle">b</text></g><g transform="translate(480 76) rotate(-4)"><rect x="-11" y="-14" width="22" height="20" rx="5" fill="#FF8A3D"/><text x="0" y="1" text-anchor="middle">c</text></g></g>
+    ${palm(40, 66, .9)}${tree(545, 56, .8, '#22A55B')}`;
+  if (mi === 2) art = `<path d="M0 110 V52 Q60 40 150 50 L190 110Z" fill="#6FBF8B"/><path d="M580 110 V46 Q500 38 430 50 L390 110Z" fill="#6FBF8B"/>
+    <path d="M150 110 Q290 86 430 110Z" fill="#1F8CC9" opacity=".55"/>
+    <path d="M150 58 Q290 96 430 58" fill="none" stroke="#8A6A3A" stroke-width="5"/><path d="M150 40 Q290 78 430 40" fill="none" stroke="#C9A66B" stroke-width="2.5"/>
+    <g stroke="#C9A66B" stroke-width="2.5">${[180, 215, 250, 290, 330, 365, 400].map(x => { const t = (x - 150) / 280, y = 58 + 76 * t * (1 - t); return `<path d="M${x} ${(y - 18).toFixed(1)} V${y.toFixed(1)}"/>`; }).join('')}</g>
+    <rect x="143" y="30" width="8" height="34" rx="3" fill="#7A5A3A"/><rect x="429" y="30" width="8" height="34" rx="3" fill="#7A5A3A"/>
+    ${tree(60, 46, 1, '#22A55B')}${palm(520, 46, .9)}`;
+  if (mi === 3) { const hut = (x, y, k, r) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-20" y="-4" width="40" height="26" rx="3" fill="#F6E3C5"/><path d="M-28 -2 L0 -30 L28 -2Z" fill="${r}"/><rect x="-6" y="6" width="12" height="16" rx="2" fill="#8A5A3A"/><rect x="9" y="2" width="8" height="8" rx="1.5" fill="#FFD27A"/></g>`;
+    art = `<path d="M0 82 Q160 58 320 74 T580 68 V110 H0Z" fill="#B9DE9A"/><path d="M0 98 Q200 82 400 94 T580 90 V110 H0Z" fill="#8CCB7A"/>
+    ${hut(150, 70, 1, '#FF8A3D')}${hut(250, 78, .8, '#E0457B')}${hut(390, 72, 1.05, '#1F8CC9')}${hut(480, 80, .75, '#FF8A3D')}
+    <path d="M320 84 V44" stroke="#7A5A3A" stroke-width="3"/><path d="M320 44 h22 l-6 7 6 7 h-22z" fill="#FFC23D"/>
+    ${palm(50, 84, 1)}${tree(545, 80, .9, '#22A55B')}`; }
+  if (mi === 4) art = `<circle cx="110" cy="30" r="15" fill="#FFF6D8"/><circle cx="116" cy="26" r="13" fill="${sky[0]}"/>
+    <path d="M0 84 Q180 70 340 82 T580 76 V110 H0Z" fill="#6F9A8A"/><path d="M0 96 Q200 86 380 96 T580 92 V110 H0Z" fill="#4E8272"/>
+    <g fill="none" stroke="#4A3B45" stroke-width="3.5" stroke-linecap="round"><path d="M220 92 V52 M220 66 L204 52 M220 60 L236 44 M236 44 L246 46"/><path d="M450 90 V58 M450 70 L466 56 M450 64 L438 52"/></g>
+    <g fill="#fff" opacity=".55"><rect x="20" y="70" width="170" height="9" rx="4.5"/><rect x="280" y="62" width="210" height="9" rx="4.5"/><rect x="380" y="78" width="180" height="8" rx="4"/></g>
+    <g fill="#FFE27A"><circle cx="160" cy="56" r="4"/><circle cx="330" cy="46" r="3.5"/><circle cx="520" cy="54" r="4"/></g><g fill="#FFE27A" opacity=".3"><circle cx="160" cy="56" r="9"/><circle cx="330" cy="46" r="8"/><circle cx="520" cy="54" r="9"/></g>
+    <g stroke="#2F6B58" stroke-width="2.5" stroke-linecap="round"><path d="M70 98 V78 M78 98 V82 M86 98 V76 M540 96 V78 M548 96 V84"/></g>`;
+  if (mi === 5) { const cren = (x, y, w) => Array.from({ length: Math.floor(w / 16) }, (_, i) => `<rect x="${x + i * 16}" y="${y - 7}" width="9" height="8" fill="#8E86B8"/>`).join('');
+    art = `<path d="M0 90 Q200 76 380 88 T580 84 V110 H0Z" fill="#9CCB9A"/>
+    <rect x="150" y="50" width="280" height="50" fill="#A9A2CF"/>${cren(152, 50, 280)}
+    <rect x="130" y="28" width="46" height="72" fill="#8E86B8"/>${cren(131, 28, 46)}<rect x="404" y="28" width="46" height="72" fill="#8E86B8"/>${cren(405, 28, 46)}
+    <path d="M266 100 V74 a24 24 0 0 1 48 0 V100Z" fill="#5A4E96"/>
+    <rect x="280" y="78" width="20" height="16" rx="3" fill="#FFC23D"/><path d="M284 78 v-5 a6 6 0 0 1 12 0 v5" fill="none" stroke="#FFC23D" stroke-width="3"/>
+    <rect x="148" y="44" width="10" height="14" rx="5" fill="#5A4E96"/><rect x="422" y="44" width="10" height="14" rx="5" fill="#5A4E96"/>
+    <path d="M153 28 V10" stroke="#5A4E96" stroke-width="2.5"/><path d="M153 10 h16 l-5 5 5 5 h-16z" fill="#E0457B"/>
+    ${tree(60, 84, 1, '#22A55B')}${palm(525, 86, .95)}`; }
+  if (mi === 6) art = `<circle cx="290" cy="40" r="30" fill="#FFC23D" opacity=".45"/>
+    <path d="M0 92 Q200 80 380 90 T580 86 V110 H0Z" fill="#9CCB9A"/>
+    <path d="M190 100 h200 v-6 h-10 v-6 h-10 v-6 H210 v6 h-10 v6 h-10z" fill="#E9DFC6"/>
+    <g fill="#F7F0DD">${[222, 252, 282, 312, 342].map(x => `<rect x="${x}" y="46" width="12" height="36" rx="2"/>`).join('')}</g>
+    <rect x="212" y="40" width="156" height="8" rx="2" fill="#E9DFC6"/><path d="M206 40 L290 12 L374 40Z" fill="#0E6B4F"/>
+    <g transform="translate(290 30)" fill="none" stroke="#FFC23D" stroke-width="2" stroke-linecap="round"><path d="M0 -8 V6 M-10 -5 H10 M-10 -5 l-4 8 h8z M10 -5 l-4 8 h8z"/></g>
+    ${palm(90, 86, 1.05)}${tree(140, 88, .8, '#3FB96C')}${palm(490, 84, 1)}${tree(440, 90, .75, '#22A55B')}`;
+  return `<svg viewBox="0 0 580 110" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="580" height="110" fill="url(#${id})"/>${art}</svg>`;
+}
+
 function renderMap() {
   if (!S.avatar) return go('#/ghid');
   const doneN = ALL.filter(l => S.done[l.id]).length;
   const cur = ALL.findIndex(l => !S.done[l.id]);
   const me = myAvatar();
-  let html = `<div class="map-head"><div><h1>Drumul tău prin jungla tehnologică</h1><p>${doneN === 0 ? `${esc(me.name)} te așteaptă la prima lecție.` : doneN === ALL.length ? 'Ai străbătut toată jungla. Felicitări!' : 'Continuă de unde ai rămas.'}</p>
+  let html = `<div class="map-head"><div><h1>Drumul tău prin jungla tehnologică</h1><p>${doneN === 0 ? `${esc(me.name)} te așteaptă la prima lecție.` : doneN === ALL.length ? 'Ai străbătut toată jungla. Felicitări!' : `„${esc(voice().map)}”`}</p>
       <p class="save-note">Progresul se salvează în acest browser. Ca să continui de unde ai rămas, revino de pe același dispozitiv și din același browser.</p>
-      <button class="link small" id="chg">Schimbă ghidul</button></div>
+      <div class="map-tools"><button class="link small" id="chg">Schimbă ghidul</button>${sndBtn()}${installBtn('small')}</div></div>
     <div class="overall"><small>${doneN} din ${ALL.length} lecții</small><div class="bar"><div style="width:${doneN / ALL.length * 100}%"></div></div></div></div>
     <div class="path" id="path"><svg class="trail" id="trail" aria-hidden="true"></svg>`;
   M.forEach((m, mi) => {
@@ -259,6 +451,7 @@ function renderMap() {
     const unitLocked = !isUnlocked(ALL[firstIdx]);
     html += `<section class="unit${unitLocked ? ' locked' : ''}" style="--mc:${m.color}" aria-label="Modulul ${mi + 1}: ${esc(m.title)}">
       <div class="deco deco-l">${CTREE(m.color)}</div><div class="deco deco-r">${CTREE(m.color)}</div>
+      <div class="scene" aria-hidden="true">${zoneScene(mi, m.color)}</div>
       <div class="unit-banner"><i>${I[m.icon]}</i><div class="t"><small>Modulul ${mi + 1}: ${esc(m.zone || '')}</small><b>${esc(m.title)}</b></div><span class="p">${mDone}/${m.lessons.length}</span></div>
       <div class="nodes">`;
     m.lessons.forEach(l0 => {
@@ -514,7 +707,7 @@ function openLesson(id) {
   let sel = null, checked = false, orderAns = [], matchLeft = null, matchDone = 0, matchErr = false, spotSel = new Set(), flipped = new Set();
 
   overlay.innerHTML = `<div class="lesson" role="dialog" aria-modal="true" aria-label="${esc(L.title)}" style="--mc:${L.m.color}">
-    <div class="l-top"><button class="x" id="lx" aria-label="Închide lecția">${I.x}</button><div class="bar"><div id="lbar" style="width:0"></div></div></div>
+    <div class="l-top"><button class="x" id="lx" aria-label="Închide lecția">${I.x}</button><div class="bar"><div id="lbar" style="width:0"></div></div>${sndBtn()}</div>
     <div class="phases" id="phases">${['Descoperă', 'Exersează', 'Pe scurt'].map((p, i) => (i === 2 && !hasRecap) ? '' : `<span data-p="${i}">${p}</span>`).join('')}</div>
     <div class="l-body" id="lbody"></div>
     <div class="l-foot" id="lfoot"></div></div>`;
@@ -592,13 +785,13 @@ function openLesson(id) {
         if (b.dataset.side === 'l') { body.querySelectorAll('[data-side="l"]').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); matchLeft = b; return; }
         if (!matchLeft) { b.classList.add('wrong'); setTimeout(() => b.classList.remove('wrong'), 350); return; }
         if (matchLeft.dataset.i === b.dataset.i) {
-          matchLeft.classList.remove('sel'); matchLeft.classList.add('good'); b.classList.add('good'); matchLeft = null; matchDone++;
+          matchLeft.classList.remove('sel'); matchLeft.classList.add('good'); b.classList.add('good'); matchLeft = null; matchDone++; SFX.ok();
           if (matchDone === st.pairs.length) {
             checked = true; graded++; if (!matchErr && !queue[pos].tries) firstTry++;
             foot.dataset.mode = 'info'; footer('good', { title: matchErr ? 'Gata, toate perechile!' : 'Perfect!', text: esc(st.explain || '') });
           }
         } else {
-          matchErr = true; mistakes++;
+          matchErr = true; mistakes++; SFX.bad();
           const a = matchLeft; [a, b].forEach(x => x.classList.add('wrong'));
           setTimeout(() => [a, b].forEach(x => x.classList.remove('wrong')), 400);
         }
@@ -617,8 +810,8 @@ function openLesson(id) {
         if (k >= items.length || b.disabled) return;
         const it = items[k], ok = +b.dataset.b === it.b;
         const card = $('#sCard');
-        if (ok) { cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card good'; }
-        else { errs++; mistakes++; cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card wrong'; card.innerHTML = `${esc(it.text)}<small>Locul corect: ${esc(st.buckets[it.b])}</small>`; }
+        if (ok) { cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card good'; SFX.ok(); }
+        else { errs++; mistakes++; SFX.bad(); cnt[it.b]++; $('#bc' + it.b).textContent = cnt[it.b]; card.className = 'sort-card wrong'; card.innerHTML = `${esc(it.text)}<small>Locul corect: ${esc(st.buckets[it.b])}</small>`; }
         body.querySelectorAll('.bucket').forEach(x => x.disabled = true);
         setTimeout(() => {
           body.querySelectorAll('.bucket').forEach(x => x.disabled = false);
@@ -687,16 +880,17 @@ function openLesson(id) {
     }
     if (ok) {
       if (!queue[pos].tries) firstTry++;
-      footer('good', { title: ['Corect!', 'Foarte bine!', 'Exact!', 'Bravo!'][Math.floor(Math.random() * 4)], text: [custom, st.explain].filter(Boolean).map(t => esc(t)).join('<br><br>') });
+      SFX.ok();
+      footer('good', { title: pick(voice().ok), text: [custom, st.explain].filter(Boolean).map(t => esc(t)).join('<br><br>') });
     } else {
-      mistakes++;
+      mistakes++; SFX.bad();
       const again = queue[pos].tries < 2;
       if (again) queue.push({ s: st, tries: queue[pos].tries + 1 });
       let ans = '';
       if (st.t === 'order') ans = `<strong style="display:block;margin-top:4px">Ordinea corectă:</strong>${correctText}`;
       else if (st.t === 'spot') ans = 'Cele marcate cu verde punctat îți scăpaseră.';
       else ans = `Răspuns corect: <strong>${esc(correctText)}</strong>`;
-      footer('bad', { title: 'Nu chiar.', text: (custom ? esc(custom) + '<br>' : '') + ans + (st.explain ? '<br><br>' + esc(st.explain) : '') + (again ? '<br><i>Revenim la întrebare la final.</i>' : '') });
+      footer('bad', { title: pick(voice().bad), text: (custom ? esc(custom) + '<br>' : '') + ans + (st.explain ? '<br><br>' + esc(st.explain) : '') + (again ? '<br><i>Revenim la întrebare la final.</i>' : '') });
     }
   }
 
@@ -725,7 +919,8 @@ function openLesson(id) {
     body.innerHTML = `<div class="l-in done-screen">
       <div class="done-av cheer">${avatarSVG(me)}</div>
       <h2>${modFinished ? `Ai terminat modulul ${L.mi + 1}!` : 'Lecție terminată!'}</h2>
-      <p class="muted">${modFinished ? `Ai ieșit din ${esc(L.m.zone || L.m.title)}.` : `${esc(me.name)} merge mai departe pe potecă.`}</p>
+      ${modFinished ? `<div class="badge" style="--mc:${L.m.color}"><div class="scene">${zoneScene(L.mi, L.m.color)}</div><b>${esc(L.m.zone || L.m.title)}</b><small>Zonă străbătută · insigna ${L.mi + 1} din ${M.length}</small></div>` : ''}
+      <p class="say"><b>${esc(me.name)}:</b> „${esc(modFinished ? voice().mod : voice().done)}”</p>
       <div class="scores"><div class="score"><small>XP câștigat</small><b class="xp-c">+${gain}</b></div>
       <div class="score"><small>Din prima încercare</small><b class="ok-c">${acc}%</b></div></div>
       ${allDone() && !already ? '<p><b>Ai parcurs toată jungla. Certificatul tău e gata!</b></p>' : ''}
@@ -734,7 +929,7 @@ function openLesson(id) {
     foot.className = 'l-foot'; foot.innerHTML = `<div class="in"><div class="fb"></div><button class="btn" id="lgo">Continuă</button></div>`;
     $('#lgo').onclick = () => go(askSurvey ? '#/chestionar' : (allDone() && !already ? '#/certificat' : '#/drum'));
     $('#lgo').focus();
-    confetti();
+    confetti(); SFX.done();
   }
 
   overlay.onkeydown = e => {
@@ -787,6 +982,10 @@ function renderAbout() {
     <h2>Pentru organizații</h2>
     <p>Articolul 4 din AI Act cere organizațiilor care folosesc AI să ia măsuri care să sprijine alfabetizarea în domeniul AI a personalului. Putem adapta acest traseu, sau un program complet, domeniului vostru.</p>
     <p>Scrie-ne la <a href="mailto:${esc(C.CONTACT_EMAIL)}">${esc(C.CONTACT_EMAIL)}</a>.</p>
+    ${authorBox('despre')}
+    <h2>Pune aplicația pe telefon</h2>
+    <p>O poți instala ca pe orice aplicație, fără magazin de aplicații. Merge și fără internet, iar progresul rămâne pe dispozitivul tău.</p>
+    <p>${installBtn() || '<i>Aplicația e deja instalată pe acest dispozitiv.</i>'}</p>
     ${ctaBox('despre')}</div>`;
   window.scrollTo(0, 0);
 }
@@ -845,6 +1044,7 @@ function renderCert() {
       <p class="err" id="nlErr" role="alert"></p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><button class="btn" id="nlYes">Da, vreau noutățile</button><button class="link" id="nlNo">Nu, mulțumesc</button></div>
     </section>` : ''}
+    ${authorBox('certificat')}
     ${ctaBox('certificat')}</div>`;
   const cv = $('#cv'), ctx = cv.getContext('2d'), logo = new Image(), sig = new Image();
   const SIG_SRC = C.CERT_SIGNATURE_IMAGE || 'assets/semnatura.png';
@@ -923,5 +1123,6 @@ function renderCert() {
 /* ---------------- pornire ---------------- */
 initGate();
 if (!S.counted) { S.counted = true; save(); track('prima_vizita'); }
+initInApp(); initFooter();
 route();
 })();

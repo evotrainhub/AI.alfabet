@@ -1,0 +1,17 @@
+{
+  "name": "AI Alfabet · EvoTrainHub",
+  "short_name": "AI Alfabet",
+  "description": "Curs interactiv gratuit despre inteligența artificială, pentru începători: 7 module scurte, exerciții, certificat.",
+  "lang": "ro",
+  "start_url": "./#/drum",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EEF8F1",
+  "theme_color": "#22A55B",
+  "icons": [
+    { "src": "assets/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

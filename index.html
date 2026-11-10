@@ -3,14 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AI pas cu pas · EvoTrainHub</title>
+<title>AI Alfabet · EvoTrainHub</title>
 <meta name="description" content="Curs interactiv gratuit despre inteligența artificială, pentru începători: 7 module scurte, exerciții, certificat. De la EvoTrainHub.">
-<meta property="og:title" content="AI pas cu pas · EvoTrainHub">
+<meta property="og:title" content="AI Alfabet · EvoTrainHub">
 <meta property="og:description" content="Învață inteligența artificială pas cu pas: 7 module scurte, exerciții interactive, certificat. Gratuit.">
-<meta property="og:image" content="assets/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://evotrainhub.github.io/AI.alfabet/">
+<meta property="og:image" content="https://evotrainhub.github.io/AI.alfabet/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AI Alfabet">
 <meta name="theme-color" content="#22A55B">
-<link rel="icon" href="assets/icon-192.png">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="icon" href="assets/app-96.png">
+<link rel="apple-touch-icon" href="assets/app-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,7 +28,7 @@
 <body>
 <header class="top">
   <div class="top-in">
-    <a class="brand" href="#/"><img src="assets/logo.png" alt=""><span><b>AI pas cu pas</b><small>de la EvoTrainHub</small></span></a>
+    <a class="brand" href="#/"><img src="assets/app-96.png" alt=""><span><b>AI Alfabet</b><small>de la EvoTrainHub</small></span></a>
     <nav class="nav" aria-label="Navigare">
       <a href="#/drum" data-r="drum">Drumul meu</a>
       <a href="#/blog" data-r="blog">Blog</a>
@@ -31,11 +40,13 @@
   </div>
 </header>
 
+<div id="inapp" class="inapp" hidden></div>
 <main id="app"></main>
 <div id="overlay"></div>
 
 <footer>
   <span>© EvoTrainHub</span>
+  <span id="footSocial" class="foot-social"></span>
   <a href="#/confidentialitate">Confidențialitate</a>
   <a href="https://evotrainhub.com/cursuri-online" target="_blank" rel="noopener" data-t="cursuri:subsol">Cursuri AI</a>
   <a href="https://evotrainhub.com" target="_blank" rel="noopener">evotrainhub.com</a>
@@ -53,6 +64,14 @@
     <button class="btn wide" type="submit">Trimite-mi linkul</button>
     <div style="text-align:center"><button class="link" type="button" id="gLater">Continuă fără e-mail</button></div>
   </form>
+</dialog>
+
+<dialog id="ios" aria-labelledby="iosT">
+  <div class="dlg">
+    <h2 id="iosT">Pune aplicația pe ecranul telefonului</h2>
+    <div id="iosBody"></div>
+    <button class="btn wide" type="button" id="iosOk">Am înțeles</button>
+  </div>
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

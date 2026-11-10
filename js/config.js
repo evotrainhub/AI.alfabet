@@ -2,7 +2,7 @@
    CONFIGURARE – completează înainte de publicare
    ===================================================================== */
 window.CONFIG = {
-  APP_NAME: 'AI pas cu pas',
+  APP_NAME: 'AI Alfabet',
 
   // Adresa aplicației web Google Apps Script (vezi README, pasul 2).
   // Cât timp e goală, aplicația merge normal, dar nu trimite nimic.
@@ -23,6 +23,20 @@ window.CONFIG = {
   // Semnătura de pe certificat
   CERT_SIGNATURE: 'EvoTrainHub',
   CERT_SIGNATURE_ROLE: 'Program de alfabetizare în domeniul AI',
+
+  // ---- Autorul aplicației și butoanele „Urmărește” ----
+  // Completează linkurile. Un link lăsat gol ('') ascunde butonul respectiv.
+  AUTHOR: {
+    name: 'Ruxandra Boghian',
+    role: 'Conf. univ. dr. habil. la ASE București · consultant AI, fondator EvoTrainHub',
+    photo: '',                       // opțional: 'assets/autor.jpg' (pătrată, min. 200×200)
+    facebook: 'https://www.facebook.com/ruxandra.dinulescu/',
+    linkedin: 'https://www.linkedin.com/in/ruxandra-b-911576b1/'
+  },
+  BRAND_SOCIAL: {
+    facebook: 'https://www.facebook.com/evotrainhub',
+    linkedin: 'https://www.linkedin.com/company/evotrainhub'
+  },
 
   // E-mailul e opțional: invitația apare o singură dată, după primul modul
   FREE_MODULES: 1

@@ -444,3 +444,96 @@ dialog::backdrop{background:rgba(14,51,42,.55)}
 .share-row{text-align:center;margin:18px 0 0}
 .cert-note{font-size:14px;color:var(--muted);margin:4px 0 10px}
 .cta-box .btns .btn{flex:1 1 240px;text-align:center}
+
+
+/* =====================================================================
+   VERSIUNEA 2 – aspect nou, zone, instalare, autor, sunete
+   ===================================================================== */
+.brand img{border-radius:11px;box-shadow:0 2px 0 rgba(14,107,79,.18)}
+.btn svg{width:20px;height:20px;flex:none}
+.hero-note{font-size:14px!important;color:var(--muted);margin:16px 0 0!important}
+.hero-art img{border-radius:24%;box-shadow:0 14px 30px rgba(14,107,79,.22),0 5px 0 rgba(14,107,79,.16);inset:17%;width:66%;height:66%;animation:floaty 5s ease-in-out infinite}
+.hero-art .ring{animation:spin 60s linear infinite}
+.orb{animation:floaty 4s ease-in-out infinite}
+.orb:nth-child(odd){animation-delay:-2s}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -7px}}
+@keyframes spin{to{rotate:360deg}}
+.mod-card{transition:transform .15s,box-shadow .15s}
+.mod-card:hover{transform:translateY(-3px)}
+.fact{position:relative;overflow:hidden}
+@media (max-width:760px){
+  .hero{padding:22px 0 8px}
+  .hero-art{order:2;max-width:210px;margin:34px auto 30px}
+  .hero .cta .btn{flex:1 1 100%}
+}
+/* bara de sus pe mobil: rămâne vizibilă și seria de zile */
+@media (max-width:640px){
+  .stat.fire{display:flex}
+  .stat{padding:5px 7px;font-size:14px;gap:3px;border-width:2px}
+  .stat svg{width:15px;height:15px}
+  .nav{gap:0}.nav a{padding:7px 6px;font-size:13.5px}
+  .brand img{width:36px;height:36px}
+  .top-in{gap:6px;padding:8px 10px}
+}
+@media (max-width:359px){.stat.fire{display:none}}
+
+/* banner pentru browserul din rețelele de socializare */
+.inapp{background:#FFF4D6;border-bottom:2px solid #F3D48A}
+.inapp-in{max-width:1000px;margin:0 auto;padding:10px 14px;display:flex;gap:10px;align-items:center}
+.inapp p{margin:0;font-size:14px;line-height:1.4;flex:1;color:#5A4410}
+.inapp .btn{white-space:nowrap}
+
+/* instalare */
+.steps-list{margin:0 0 16px;padding-left:22px;color:var(--ink)}
+.steps-list li{margin:0 0 8px}
+.map-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.snd{border:2px solid var(--line);background:var(--surface);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--jungle);flex:none}
+.snd svg{width:20px;height:20px}
+.snd[aria-pressed="false"]{color:var(--muted);background:var(--soft)}
+
+/* alegerea ghidului */
+.av-quote{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 16px;margin:-8px auto 22px!important;max-width:520px;color:var(--ink)!important;min-height:52px}
+.av-quote b{color:var(--jungle)}
+.av-card{transition:transform .12s}
+.av-card.sel{transform:translateY(-3px)}
+
+/* harta: decorul zonelor */
+.unit .scene{height:96px;border-radius:20px 20px 0 0;overflow:hidden;position:relative;z-index:2;border:3px solid var(--mc);border-bottom:0;background:var(--soft)}
+.unit .scene svg{display:block;width:100%;height:100%}
+.unit .scene+.unit-banner{border-radius:0 0 20px 20px}
+.unit.locked .scene{filter:saturate(.35) brightness(1.08);border-color:color-mix(in srgb,var(--mc) 45%,#fff)}
+.unit.locked .unit-banner{filter:saturate(.45) brightness(1.08)}
+.unit:not(.locked) .scene svg{animation:pan 26s ease-in-out infinite alternate}
+@keyframes pan{from{transform:scale(1.06) translateX(-1.5%)}to{transform:scale(1.06) translateX(1.5%)}}
+.node{transition:transform .12s}
+.node:not(.locked):hover{transform:translateY(-2px) scale(1.04)}
+
+/* finalul lecției */
+.say{background:var(--soft);border-radius:16px;padding:12px 16px;display:inline-block;margin:6px 0 0;max-width:460px}
+.say b{color:var(--jungle)}
+.badge{width:min(320px,100%);margin:14px auto 12px;border-radius:20px;overflow:hidden;background:var(--surface);border:3px solid var(--mc);box-shadow:0 6px 0 color-mix(in srgb,var(--mc) 62%,#000);animation:pop .5s cubic-bezier(.2,1.4,.4,1) both}
+.badge .scene{height:110px}.badge .scene svg{display:block;width:100%;height:100%}
+.badge b{display:block;font-size:19px;font-weight:600;padding:10px 12px 0;color:var(--ink)}
+.badge small{display:block;color:var(--muted);padding:2px 12px 12px}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* autor și rețele */
+.author{display:flex;gap:18px;align-items:flex-start;background:var(--surface);border:2px solid var(--line);border-radius:24px;padding:22px;margin:40px 0 0}
+.au-ph{width:84px;height:84px;border-radius:50%;flex:none;object-fit:cover;border:3px solid var(--line)}
+.au-ini{display:grid;place-items:center;background:linear-gradient(135deg,var(--leaf),var(--teal));color:#fff;font-weight:600;font-size:30px;border-color:#fff;box-shadow:0 4px 0 var(--line)}
+.au-t small{color:var(--muted);font-size:13px;display:block}
+.au-t b{font-size:21px;font-weight:600;display:block;color:var(--jungle);line-height:1.2}
+.au-t>span{display:block;color:var(--muted);font-size:14.5px;margin-top:2px}
+.au-t p{margin:10px 0 12px;font-size:15.5px}
+.socs{display:flex;gap:10px;flex-wrap:wrap}
+.soc{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;font-size:15px;padding:9px 14px 9px 9px;border-radius:14px;color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.soc i{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.2);display:grid;place-items:center}
+.soc svg{width:20px;height:20px}
+.soc.facebook{background:#1F6FD0}.soc.linkedin{background:#0B5FA5}
+.soc:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+.foot-social{display:inline-flex;gap:8px}
+.foot-social:empty{display:none}
+.foot-social .soc{padding:5px;box-shadow:none;border-radius:10px}
+.foot-social .soc span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:520px){.author{flex-direction:column;align-items:center;text-align:center}.socs{justify-content:center}.soc{flex:1 1 100%;justify-content:center}}
+@media (prefers-reduced-motion:reduce){.hero-art img,.hero-art .ring,.orb,.unit .scene svg,.badge{animation:none!important}}

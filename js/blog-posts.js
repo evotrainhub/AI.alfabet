@@ -56,7 +56,7 @@ Nu e vorba de programare. E vorba ca oamenii care folosesc AI să știe:
 
 Pentru majoritatea organizațiilor, alfabetizarea AI înseamnă o instruire adaptată rolului fiecăruia, câteva reguli interne clare și exemple din activitatea reală a echipei.
 
-*Aplicația „AI pas cu pas” acoperă bazele. Pentru un program adaptat organizației tale, [scrie-ne](https://evotrainhub.com).*
+*Aplicația „AI Alfabet” acoperă bazele. Pentru un program adaptat organizației tale, [scrie-ne](https://evotrainhub.com).*
 `
 }
 ];

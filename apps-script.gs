@@ -1,5 +1,5 @@
 /**
- * AI pas cu pas – primirea datelor în Google Sheets
+ * AI Alfabet – primirea datelor în Google Sheets
  * Instrucțiuni complete în README.md, pasul 2.
  *
  * Foaia „Chestionar”  – răspunsuri anonime (fără e-mail)
@@ -32,7 +32,8 @@ function doPost(e) {
 
     if (d.type === 'event') {
       const permise = ['prima_vizita', 'modul_terminat', 'certificat', 'click_cursuri', 'click_training',
-                       'click_start', 'ghid_ales', 'lectie_inceputa', 'lectie_terminata', 'chestionar_omis'];
+                       'click_start', 'ghid_ales', 'lectie_inceputa', 'lectie_terminata', 'chestionar_omis',
+                       'click_instalare', 'click_social'];
       if (permise.indexOf(d.name) !== -1) {
         foaie(ss, 'Evenimente', ['Data', 'Eveniment', 'Detaliu']).appendRow([new Date(), d.name, curat(d.value)]);
       }
@@ -57,7 +58,7 @@ function doPost(e) {
 }
 
 function doGet() {
-  return ContentService.createTextOutput('Serviciul AI pas cu pas funcționează.');
+  return ContentService.createTextOutput('Serviciul AI Alfabet funcționează.');
 }
 
 function bunVenit(email) {
@@ -69,7 +70,7 @@ function bunVenit(email) {
       '</div>' +
       '<div style="padding:28px 8px;font-size:15px;line-height:1.65">' +
         '<p>Bună ziua,</p>' +
-        '<p>Vă mulțumesc pentru interesul acordat programului <b>„AI pas cu pas”</b>. Mai jos găsiți linkul aplicației, ca să reveniți oricând la cele 7 module, gândite pentru a vă ajuta să folosiți inteligența artificială corect și în siguranță, la locul de muncă.</p>' +
+        '<p>Vă mulțumesc pentru interesul acordat programului <b>„AI Alfabet”</b>. Mai jos găsiți linkul aplicației, ca să reveniți oricând la cele 7 module, gândite pentru a vă ajuta să folosiți inteligența artificială corect și în siguranță, la locul de muncă.</p>' +
         '<div style="text-align:center;margin:28px 0">' +
           '<a href="' + LINK_APLICATIE + '" style="background:#0E6B4F;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:8px;font-size:15px;font-weight:bold;display:inline-block">Continuați de unde ați rămas</a>' +
         '</div>' +
@@ -81,14 +82,14 @@ function bunVenit(email) {
         '<p style="margin:2px 0 0;font-size:13px"><a href="' + SITE + '" style="color:#0E6B4F;text-decoration:none">evotrainhub.com</a></p>' +
       '</div>' +
       '<div style="border-top:1px solid #ddd;padding:16px 8px 0;font-size:11px;color:#999;line-height:1.5">' +
-        'Ați primit acest mesaj deoarece v-ați lăsat adresa în aplicația „AI pas cu pas”. ' +
+        'Ați primit acest mesaj deoarece v-ați lăsat adresa în aplicația „AI Alfabet”. ' +
         'Dacă doriți să ștergem adresa dumneavoastră, răspundeți la acest e-mail.' +
       '</div>' +
     '</div>';
   MailApp.sendEmail({
     to: email,
     name: NUME_EXPEDITOR,
-    subject: 'Bun venit în programul „AI pas cu pas” — EvoTrainHub',
+    subject: 'Bun venit în programul „AI Alfabet” — EvoTrainHub',
     htmlBody: html
   });
 }
@@ -130,7 +131,7 @@ function creeazaStatistici() {
   const ev = (name, det) => '=COUNTIFS(' + E + 'B:B,"' + name + '",' + E + 'C:C,"' + det + '")';
   const ev7 = (name, det) => '=COUNTIFS(' + E + 'B:B,"' + name + '",' + E + 'C:C,"' + det + '",' + E + 'A:A,">="&(TODAY()-7))';
   const rows = [
-    ['AI pas cu pas – statistici', '', ''],
+    ['AI Alfabet – statistici', '', ''],
     ['', 'Total', 'Ultimele 7 zile'],
     ['Au deschis aplicația (prima vizită)', '=' + V, n7('prima_vizita')],
     ['Au completat chestionarul', '=MAX(0,COUNTA(Chestionar!A:A)-1)', '=COUNTIFS(Chestionar!A:A,">="&(TODAY()-7))'],
@@ -166,7 +167,10 @@ function creeazaStatistici() {
     ['6. Au terminat lecția 2', ev('lectie_terminata', 'm1l2'), ev7('lectie_terminata', 'm1l2')],
     ['7. Au terminat lecția 3', ev('lectie_terminata', 'm1l3'), ev7('lectie_terminata', 'm1l3')],
     ['8. Au terminat lecția 4 (tot modulul 1)', ev('lectie_terminata', 'm1l4'), ev7('lectie_terminata', 'm1l4')],
-    ['Au sărit peste chestionar (după lecția 1)', '=COUNTIF(' + E + 'B:B,"chestionar_omis")', n7('chestionar_omis')]
+    ['Au sărit peste chestionar (după lecția 1)', '=COUNTIF(' + E + 'B:B,"chestionar_omis")', n7('chestionar_omis')],
+    ['', '', ''],
+    ['Clicuri pe „Instalează aplicația”', '=COUNTIF(' + E + 'B:B,"click_instalare")', n7('click_instalare')],
+    ['Clicuri pe Facebook / LinkedIn', '=COUNTIF(' + E + 'B:B,"click_social")', n7('click_social')]
   ];
   sh.getRange(1, 1, rows.length, 3).setValues(rows);
   sh.getRange('A1').setFontSize(14).setFontWeight('bold');
