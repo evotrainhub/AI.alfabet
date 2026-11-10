@@ -683,3 +683,16 @@ body{background:
 .tap-hint{margin:0;color:var(--muted);font-size:15px;text-align:center;width:100%}
 .l-foot .in:has(#lgo[hidden]){justify-content:center}
 #lgo[hidden]{display:none}
+
+
+/* harta: ilustrația zonei, clară, în spatele lecțiilor */
+.bb-img{inset:0;filter:none;opacity:1;background-position:center top}
+.biome-bg::before{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.22) 40%,rgba(255,255,255,.1))}
+.biome-bg::after{opacity:.35}
+.biome .scene{display:none}
+.biome .unit-banner,.biome .scene+.unit-banner{border-radius:26px 26px 0 0;margin:0;background:linear-gradient(180deg,color-mix(in srgb,var(--mc) 88%,transparent),color-mix(in srgb,var(--mc) 78%,#000));backdrop-filter:blur(6px)}
+.biome.locked .bb-img{filter:grayscale(.75) brightness(1.08)}
+.biome.locked .biome-bg{filter:none}
+.node-label{box-shadow:0 3px 0 rgba(0,0,0,.18),0 6px 14px rgba(0,0,0,.18)}
+.node-wrap.locked .node-label{background:rgba(255,255,255,.88)}
+.trail .t-base{opacity:.95;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}

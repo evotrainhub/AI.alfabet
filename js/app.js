@@ -137,7 +137,7 @@ document.addEventListener('click', e => {
   if (t) {
     S.mute = !S.mute; save();
     document.querySelectorAll('[data-snd]').forEach(b => { b.innerHTML = S.mute ? I.sndOff : I.sndOn; b.setAttribute('aria-pressed', !S.mute); b.setAttribute('aria-label', 'Sunete și vibrații: ' + (S.mute ? 'oprite' : 'pornite')); });
-    toast(S.mute ? 'Sunete, voce și vibrații oprite.' : 'Sunete, voce și vibrații pornite.'); if (S.mute) hush(); else SFX.ok();
+    toast(S.mute ? 'Sunete și vibrații oprite.' : 'Sunete și vibrații pornite.'); if (S.mute) hush(); else SFX.ok();
     return;
   }
   if (e.target.closest && e.target.closest('#overlay .choice, #overlay .chip, #overlay .tile, #overlay .phrase, #overlay .fcard, .av-card')) SFX.tap();
@@ -224,7 +224,8 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // acolo deschidem pagina în aceeași fereastră.
 document.addEventListener('click', e => {
   const a = e.target.closest && e.target.closest('a[target="_blank"]');
-  if (!a || !inApp || !/^https?:/i.test(a.href)) return;
+  const touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  if (!a || !(inApp || touch || standalone()) || !/^https?:/i.test(a.href)) return;
   e.preventDefault(); setTimeout(() => { location.href = a.href; }, 120);
 });
 
