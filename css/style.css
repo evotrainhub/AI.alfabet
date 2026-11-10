@@ -537,3 +537,144 @@ dialog::backdrop{background:rgba(14,51,42,.55)}
 .foot-social .soc span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (max-width:520px){.author{flex-direction:column;align-items:center;text-align:center}.socs{justify-content:center}.soc{flex:1 1 100%;justify-content:center}}
 @media (prefers-reduced-motion:reduce){.hero-art img,.hero-art .ring,.orb,.unit .scene svg,.badge{animation:none!important}}
+
+
+/* =====================================================================
+   VERSIUNEA 3 – grafică: scenă pe prima pagină, biomuri pe hartă, relief
+   ===================================================================== */
+body{background:
+  radial-gradient(1100px 520px at 0% -10%,rgba(255,194,61,.28),transparent 60%),
+  radial-gradient(900px 620px at 100% 0%,rgba(18,181,166,.22),transparent 60%),
+  radial-gradient(900px 700px at 50% 110%,rgba(139,211,70,.22),transparent 60%),
+  linear-gradient(180deg,#F1FAF3,#E3F4E8);background-attachment:fixed}
+.btn{background:linear-gradient(180deg,#34C06F,#1E9A56);position:relative;overflow:hidden}
+.btn::before{content:"";position:absolute;left:8%;right:8%;top:5px;height:36%;border-radius:99px;background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0));pointer-events:none}
+.btn.ghost{background:linear-gradient(180deg,#fff,#F3FAF5)}
+.btn.ghost::before,.btn[disabled]::before{display:none}
+.btn.bad{background:linear-gradient(180deg,#EE5A50,#D83A30)}
+.btn[disabled]{background:#C4D6CB}
+.cta-box .btn{background:linear-gradient(180deg,#FFD15C,#FFB52E)}
+.cta-box .btn.ghost{background:transparent}
+.stat{box-shadow:0 3px 0 var(--line)}
+
+/* ---- prima pagină: scena ---- */
+.hero{grid-template-columns:1fr 1fr;padding-top:40px}
+.hero h1{background:linear-gradient(120deg,#0E6B4F 20%,#12A08C 60%,#1F8CC9);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.08em}
+.hero-scene{position:relative;aspect-ratio:1/1.02;border-radius:36px;overflow:hidden;box-shadow:0 24px 50px -18px rgba(14,107,79,.5),0 8px 0 #BFE3CB;border:4px solid #fff;isolation:isolate}
+.hs-bg{position:absolute;inset:0;width:100%;height:100%}
+.hs-icon{position:absolute;left:28%;top:9%;width:44%;border-radius:24%;box-shadow:0 18px 30px rgba(14,80,107,.3),0 0 0 5px rgba(255,255,255,.7);animation:floaty 5s ease-in-out infinite}
+.hs-crew{position:absolute;left:0;right:0;bottom:5%;display:flex;justify-content:center;align-items:flex-end;gap:1.5%;padding:0 5%}
+.hs-crew .crew-av{width:14%;filter:drop-shadow(0 5px 3px rgba(14,80,50,.3))}
+.hs-crew .crew-av:nth-child(3),.hs-crew .crew-av:nth-child(4){width:16.5%}
+.crew-note{text-align:center;color:var(--muted);font-size:15px;margin:14px 0 30px}
+.ff{position:absolute;width:5px;height:5px;border-radius:50%;background:#FFF6C4;box-shadow:0 0 8px 2px rgba(255,236,130,.85);opacity:0;animation:ff calc(4s + var(--i) * .6s) ease-in-out calc(var(--i) * -.9s) infinite;pointer-events:none}
+@keyframes ff{0%,100%{opacity:0;transform:translate(0,0)}30%{opacity:1}50%{opacity:.9;transform:translate(14px,-22px)}75%{opacity:.4;transform:translate(-8px,-36px)}}
+.fact{border:0;box-shadow:0 5px 0 var(--line);background:linear-gradient(180deg,#fff,#F6FCF8)}
+.fact b{font-size:28px}
+@media (max-width:760px){.hero{grid-template-columns:1fr}.hero-scene{order:2;margin:22px 0 0;aspect-ratio:1/.9;border-radius:28px}}
+
+/* ---- cardurile modulelor: miniatură cu peisajul zonei ---- */
+.mods{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.mod-card{flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;border:0;border-radius:22px;box-shadow:0 6px 0 color-mix(in srgb,var(--mc) 35%,#DDEFE3),0 14px 24px -14px rgba(14,107,79,.35)}
+.mod-card:hover{transform:translateY(-4px)}
+.mod-card .thumb{display:block;position:relative;height:96px;overflow:hidden}
+.mod-card .thumb>svg{display:block;width:100%;height:100%;transition:transform .5s}
+.mod-card:hover .thumb>svg{transform:scale(1.08)}
+.mod-card .thumb i{position:absolute;left:14px;bottom:-22px;width:46px;height:46px;border-radius:14px;border:3px solid #fff;box-shadow:0 4px 0 color-mix(in srgb,var(--mc) 65%,#000)}
+.mod-card>div{padding:28px 16px 16px}
+.mod-card .thumb{overflow:visible}.mod-card .thumb>svg{border-radius:22px 22px 0 0}
+.mod-card:hover .thumb>svg{transform:none}
+
+/* ---- alegerea ghidului ---- */
+.av-card{position:relative;overflow:hidden;border:0;box-shadow:0 6px 0 var(--line);padding-top:20px}
+.av-card::before{content:"";position:absolute;left:50%;top:14px;width:118px;height:118px;translate:-50% 0;border-radius:50%;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--ac) 30%,#fff),color-mix(in srgb,var(--ac) 55%,#fff));opacity:.55}
+.av-card>*{position:relative}
+.av-fig{width:92px}
+.av-card.sel{background:#fff;box-shadow:0 6px 0 var(--ac),0 0 0 3px var(--ac)}
+.av-card.sel::before{opacity:.9}
+
+/* ---- harta: biomuri ---- */
+.unit{z-index:auto}
+.trail{z-index:1}
+.nodes,.unit-banner,.unit .scene,.trophy{z-index:2}
+.unit .scene{position:relative}
+.biome{border-radius:30px;padding:0 0 34px;margin:40px 0 0;box-shadow:0 10px 0 var(--bd),0 26px 40px -22px rgba(14,60,50,.55)}
+.biome-bg{position:absolute;inset:0;border-radius:30px;overflow:hidden;background:linear-gradient(180deg,var(--b1),var(--b2));z-index:0}
+.biome-bg::after{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;background:radial-gradient(120% 100% at 50% 100%,var(--bd),transparent 70%);opacity:.55}
+.b0{--b1:#D9F6DC;--b2:#9FE0A9;--bd:#6CC47E;--lf:#2FA866}
+.b1{--b1:#D5F4F2;--b2:#8BDAD3;--bd:#55BDB4;--lf:#16998C}
+.b2{--b1:#DCEBFB;--b2:#A3CCF2;--bd:#6FA9DE;--lf:#2E7FC2}
+.b3{--b1:#FFEBD3;--b2:#FFC88E;--bd:#F0A35C;--lf:#E07A2B}
+.b4{--b1:#E6D6EA;--b2:#C29BC4;--bd:#A074A6;--lf:#7C4D85}
+.b5{--b1:#E3DCFA;--b2:#B7A9EE;--bd:#8E7CDB;--lf:#6548C2}
+.b6{--b1:#DDF0DF;--b2:#A2D3B1;--bd:#5E9E7A;--lf:#0E6B4F}
+.leaf{position:absolute;width:120px;color:var(--lf);opacity:.3}
+.leaf svg{display:block;width:100%}
+.leaf.l0{left:-34px;top:210px;rotate:38deg}
+.leaf.l1{right:-38px;top:300px;rotate:-42deg;width:140px}
+.leaf.l2{left:-44px;top:440px;rotate:64deg;width:150px}
+.leaf.l3{right:-30px;top:540px;rotate:-24deg}
+.leaf.l4{left:-26px;bottom:-30px;rotate:22deg;width:130px}
+
+.biome .scene{height:132px;border:0;border-radius:30px 30px 0 0}
+.biome .scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,color-mix(in srgb,var(--mc) 70%,#000) 130%)}
+.biome .scene+.unit-banner{border-radius:0;margin-top:-1px;box-shadow:0 6px 14px -6px rgba(0,0,0,.35);background:linear-gradient(180deg,color-mix(in srgb,var(--mc) 92%,#fff),color-mix(in srgb,var(--mc) 86%,#000))}
+.unit-banner i{background:rgba(255,255,255,.24);box-shadow:inset 0 2px 0 rgba(255,255,255,.3)}
+.biome.locked .biome-bg{filter:saturate(.25) brightness(1.06)}
+.biome.locked{box-shadow:0 10px 0 #C9D8CE,0 26px 40px -22px rgba(14,60,50,.3)}
+.biome .deco{display:none}
+.node-label{background:#fff;border-radius:99px;padding:3px 12px;box-shadow:0 3px 0 rgba(0,0,0,.1);font-weight:600;font-size:13.5px}
+.node-wrap.locked .node-label{background:rgba(255,255,255,.7);box-shadow:none}
+.trail .t-base{stroke:#fff;opacity:.85;stroke-width:15}
+.trail .t-done{stroke:#FFC23D;stroke-width:15}
+/* nodurile: relief și luciu */
+.node{width:84px;height:84px;background:radial-gradient(circle at 34% 26%,color-mix(in srgb,var(--mc) 55%,#fff) 0 16%,var(--mc) 52%,color-mix(in srgb,var(--mc) 78%,#000));
+  box-shadow:0 8px 0 color-mix(in srgb,var(--mc) 55%,#000),0 16px 18px -6px rgba(0,0,0,.35),inset 0 0 0 4px rgba(255,255,255,.28)}
+.node:active{box-shadow:0 2px 0 color-mix(in srgb,var(--mc) 55%,#000),inset 0 0 0 4px rgba(255,255,255,.28)}
+.node svg{filter:drop-shadow(0 2px 0 rgba(0,0,0,.2))}
+.node.done,.node.gold{background:radial-gradient(circle at 34% 26%,#FFF2B8 0 16%,#FFC93D 52%,#F0A21E);box-shadow:0 8px 0 #B97A12,0 16px 18px -6px rgba(0,0,0,.35),inset 0 0 0 4px rgba(255,255,255,.4)}
+.node.locked{background:radial-gradient(circle at 34% 26%,#F4F8F5 0 16%,#D5E1D9 52%,#BCCDC2);color:#8FA598;box-shadow:0 8px 0 #A3B8AA,0 14px 16px -8px rgba(0,0,0,.25),inset 0 0 0 4px rgba(255,255,255,.5)}
+.node-wrap.current .node{box-shadow:0 8px 0 color-mix(in srgb,var(--mc) 55%,#000),0 0 0 8px rgba(255,255,255,.55),0 0 34px 10px color-mix(in srgb,var(--mc) 55%,transparent),inset 0 0 0 4px rgba(255,255,255,.28)}
+.node-wrap.current .node::after{border-color:#fff;opacity:.8}
+.start-tip{border:0;box-shadow:0 4px 0 rgba(0,0,0,.14);border-radius:14px;z-index:3}
+.start-tip::after{border-top-color:#fff}
+.map-av{width:60px;filter:drop-shadow(0 6px 3px rgba(0,0,0,.28))}
+.map-head h1{background:linear-gradient(120deg,#0E6B4F,#12A08C 70%,#1F8CC9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.trophy .node-label{background:#fff}
+.overall .bar{height:14px;box-shadow:inset 0 2px 0 rgba(0,0,0,.06)}
+
+/* ---- lecția ---- */
+.lesson{background:linear-gradient(180deg,color-mix(in srgb,var(--mc) 16%,#fff) 0,#fff 230px)}
+.l-top .bar{box-shadow:inset 0 2px 0 rgba(0,0,0,.06)}
+.choice,.chip{transition:transform .1s}
+.choice:hover{transform:translateY(-2px)}
+.author{border:0;box-shadow:0 6px 0 var(--line),0 16px 26px -18px rgba(14,107,79,.4)}
+@media (prefers-reduced-motion:reduce){.ff,.hs-icon{animation:none!important}}
+
+
+/* =====================================================================
+   VERSIUNEA 4 – ilustrații (assets/hero.webp, assets/zone-1..7.webp)
+   ===================================================================== */
+.hs-bg{object-fit:cover}
+.hero-scene{aspect-ratio:1/1;border-width:5px}
+.hs-icon{left:31%;top:7%;width:38%}
+.hs-crew{bottom:9%;gap:2%}
+.hs-crew .crew-av,.map-av,.done-av,.r-av{filter:drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff) drop-shadow(0 6px 4px rgba(0,40,20,.35))}
+@media (max-width:760px){.hero-scene{aspect-ratio:1/1}}
+.unit .scene img,.badge .scene img,.mod-card .thumb>img{display:block;width:100%;height:100%;object-fit:cover}
+.biome .scene{height:auto;aspect-ratio:3/1;overflow:hidden}
+.biome .scene::after{background:linear-gradient(180deg,transparent 60%,color-mix(in srgb,var(--mc) 75%,#000) 135%)}
+.unit:not(.locked) .scene img{animation:pan 26s ease-in-out infinite alternate}
+.biome.locked .scene{filter:saturate(.25) brightness(1.05)}
+.bb-img{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(34px) saturate(1.15);opacity:.62}
+.biome-bg::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.12));z-index:1}
+.biome-bg .ff{z-index:2}
+.biome-bg::after{z-index:1}
+.mod-card .thumb{height:auto;aspect-ratio:2.4/1}
+.mod-card .thumb>img{border-radius:22px 22px 0 0}
+.badge .scene{height:auto;aspect-ratio:3/1}
+.lesson::before{content:"";position:absolute;left:0;right:0;top:0;height:150px;background:var(--zi) center 30%/cover;opacity:.5;-webkit-mask-image:linear-gradient(180deg,#000 20%,transparent);mask-image:linear-gradient(180deg,#000 20%,transparent);pointer-events:none}
+.lesson>*{position:relative}
+.l-top .x,.l-top .snd{background:rgba(255,255,255,.9)}
+.phases span{box-shadow:0 2px 0 rgba(0,0,0,.06)}
+@media (prefers-reduced-motion:reduce){.unit .scene img{animation:none!important}}
