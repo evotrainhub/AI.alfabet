@@ -446,7 +446,7 @@ function renderMap() {
     const firstIdx = ALL.findIndex(l => l.mi === mi);
     const unitLocked = !isUnlocked(ALL[firstIdx]);
     html += `<section class="unit biome b${mi}${unitLocked ? ' locked' : ''}" style="--mc:${m.color}" aria-label="Modulul ${mi + 1}: ${esc(m.title)}">
-      <div class="biome-bg" aria-hidden="true"><span class="bb-img" style="background-image:url(assets/zone-${mi + 1}.webp)"></span>${unitLocked ? '' : Array.from({ length: 6 }, (_, k) => `<i class="ff" style="--i:${k};left:${6 + (k * 41) % 88}%;top:${22 + (k * 29) % 70}%"></i>`).join('')}</div>
+      <div class="biome-bg" aria-hidden="true"><span class="bb-img" style="background-image:url(assets/path-${mi + 1}.webp)"></span>${unitLocked ? '' : Array.from({ length: 6 }, (_, k) => `<i class="ff" style="--i:${k};left:${6 + (k * 41) % 88}%;top:${22 + (k * 29) % 70}%"></i>`).join('')}</div>
       <div class="deco deco-l">${CTREE(m.color)}</div><div class="deco deco-r">${CTREE(m.color)}</div>
       <div class="scene" aria-hidden="true">${zoneScene(mi, m.color)}</div>
       <div class="unit-banner"><i>${I[m.icon]}</i><div class="t"><small>Modulul ${mi + 1}: ${esc(m.zone || '')}</small><b>${esc(m.title)}</b></div><span class="p">${mDone}/${m.lessons.length}</span></div>
