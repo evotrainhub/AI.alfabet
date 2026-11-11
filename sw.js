@@ -1,7 +1,7 @@
 /* Service worker – face aplicația instalabilă și utilizabilă fără internet.
    IMPORTANT: la fiecare actualizare a aplicației, schimbă numărul versiunii de mai jos
    (v2 → v3 ...). Altfel, telefoanele pot arăta încă o vreme varianta veche. */
-const VERSION = 'aialfabet-v7';
+const VERSION = 'aialfabet-v8';
 const FILES = ['./', 'index.html', 'css/style.css', 'js/config.js', 'js/content.js', 'js/blog-posts.js', 'js/avatars.js', 'js/app.js',
   'assets/logo.png', 'assets/app-192.png', 'assets/app-512.png', 'assets/semnatura.png', 'manifest.webmanifest',
   'assets/hero.webp', 'assets/zone-1.webp', 'assets/zone-2.webp', 'assets/zone-3.webp', 'assets/zone-4.webp', 'assets/zone-5.webp', 'assets/zone-6.webp', 'assets/zone-7.webp',
