@@ -10,7 +10,7 @@
 
 // Trimite un e-mail de bun venit după înscriere (true / false)
 const TRIMITE_BUN_VENIT = true;
-const LINK_APLICATIE = 'https://evotrainhub.github.io/AI.alfabet/';
+const LINK_APLICATIE = 'https://alfabet.evotrainhub.com/';
 const NUME_EXPEDITOR = 'Ruxandra Boghian, EvoTrainHub';
 const SEMNATURA_NUME = 'Ruxandra Boghian';
 const SEMNATURA_ROL = 'Fondator EvoTrainHub';

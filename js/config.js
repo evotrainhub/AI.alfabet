@@ -11,7 +11,7 @@ window.CONFIG = {
   SITE_URL: 'https://evotrainhub.com',
   COURSES_URL: 'https://evotrainhub.com/cursuri-online',   // cursurile online
   CONTACT_URL: 'https://evotrainhub.com/contact',          // cerere de training pentru echipă
-  APP_URL: 'https://evotrainhub.github.io/AI.alfabet/',    // adresa publică, pentru „Trimite unui coleg”
+  APP_URL: 'https://alfabet.evotrainhub.com/',    // adresa publică, pentru „Trimite unui coleg”
   CONTACT_EMAIL: 'evotrainhub@gmail.com',          // ← verifică adresa
 
   // Operatorul datelor (apare în pagina Confidențialitate)

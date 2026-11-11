@@ -76,3 +76,9 @@ apps-script.gs      codul pentru Google Sheets (nu se urcă pe GitHub, se lipeș
 **Sunete și vibrații.** Sunt pornite implicit; butonul cu difuzor (pe hartă și în lecție) le oprește. Vibrațiile merg doar pe Android.
 
 **Replicile ghizilor.** Sunt în `js/app.js`, în blocul `VOICE`. Le poți rescrie liber.
+
+## 8. Adresa aplicației
+
+Aplicația e publicată la **https://alfabet.evotrainhub.com/** (înregistrare CNAME `alfabet` → `evotrainhub.github.io` în zona DNS Hostinger; domeniul personalizat e setat în GitHub → Settings → Pages). Adresa veche, `evotrainhub.github.io/AI.alfabet/`, redirecționează automat spre cea nouă.
+
+Nu șterge fișierul `CNAME` din rădăcina repo-ului și nu modifica înregistrarea din Hostinger: fără ele, adresa nouă nu mai funcționează.
