@@ -130,7 +130,7 @@ function creeazaStatistici() {
   const n7 = (ev) => '=COUNTIFS(' + E + 'B:B,"' + ev + '",' + E + 'A:A,">="&(TODAY()-7))';
   const ev = (name, det) => '=COUNTIFS(' + E + 'B:B,"' + name + '",' + E + 'C:C,"' + det + '")';
   const ev7 = (name, det) => '=COUNTIFS(' + E + 'B:B,"' + name + '",' + E + 'C:C,"' + det + '",' + E + 'A:A,">="&(TODAY()-7))';
-  const rows = [
+  let rows = [
     ['AI Alfabet – statistici', '', ''],
     ['', 'Total', 'Ultimele 7 zile'],
     ['Au deschis aplicația (prima vizită)', '=' + V, n7('prima_vizita')],
@@ -170,16 +170,29 @@ function creeazaStatistici() {
     ['Au sărit peste chestionar (după lecția 1)', '=COUNTIF(' + E + 'B:B,"chestionar_omis")', n7('chestionar_omis')],
     ['', '', ''],
     ['Clicuri pe „Instalează aplicația”', '=COUNTIF(' + E + 'B:B,"click_instalare")', n7('click_instalare')],
-    ['Clicuri pe Facebook / LinkedIn', '=COUNTIF(' + E + 'B:B,"click_social")', n7('click_social')]
+    ['Clicuri pe Facebook / LinkedIn', '=COUNTIF(' + E + 'B:B,"click_social")', n7('click_social')],
+    ['', '', ''],
+    ['De unde vin vizitatorii (din 13 noiembrie 2026)', 'Au deschis', 'Ultimele 7 zile', 'Au apăsat „Începe”'],
+    ['Facebook', ev('prima_vizita', 'facebook'), ev7('prima_vizita', 'facebook'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|facebook")'],
+    ['LinkedIn', ev('prima_vizita', 'linkedin'), ev7('prima_vizita', 'linkedin'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|linkedin")'],
+    ['Instagram', ev('prima_vizita', 'instagram'), ev7('prima_vizita', 'instagram'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|instagram")'],
+    ['WhatsApp (link cu ?src=wa)', ev('prima_vizita', 'whatsapp'), ev7('prima_vizita', 'whatsapp'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|whatsapp")'],
+    ['Google', ev('prima_vizita', 'google'), ev7('prima_vizita', 'google'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|google")'],
+    ['Site-ul EvoTrainHub', ev('prima_vizita', 'site-evotrainhub'), ev7('prima_vizita', 'site-evotrainhub'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|site-evotrainhub")'],
+    ['Direct (link lipit, e-mail, mesaje, iconița instalată)', ev('prima_vizita', 'direct'), ev7('prima_vizita', 'direct'), '=COUNTIFS(' + E + 'B:B,"click_start",' + E + 'C:C,"*|direct")'],
+    ['Alte site-uri', '=COUNTIF(' + E + 'B:B,"prima_vizita")-SUM(B43:B49)-B51', '', ''],
+    ['Fără sursă (vizite de dinainte de 13 noiembrie)', '=COUNTIFS(' + E + 'B:B,"prima_vizita",' + E + 'C:C,"")', '', '']
   ];
-  sh.getRange(1, 1, rows.length, 3).setValues(rows);
+  rows = rows.map(r => r.concat(['', '', '', '']).slice(0, 4));
+  sh.getRange(1, 1, rows.length, 4).setValues(rows);
   sh.getRange('A1').setFontSize(14).setFontWeight('bold');
   sh.getRange('A2:C2').setFontWeight('bold');
   sh.getRange('A16').setFontWeight('bold');
   sh.getRange('A20').setFontWeight('bold');
   sh.getRange('A28:C28').setFontWeight('bold');
   sh.getRange('B17:B18').setNumberFormat('0%');
-  sh.setColumnWidth(1, 320); sh.setColumnWidths(2, 2, 130);
+  sh.getRange('A42:D42').setFontWeight('bold');
+  sh.setColumnWidth(1, 360); sh.setColumnWidths(2, 3, 140);
   sh.setFrozenRows(2);
 }
 
