@@ -66,7 +66,32 @@ function sendConfirmed(payload) {
     .catch(() => false).finally(() => clearTimeout(t));
 }
 // Clicuri pe legăturile către cursuri și training (data-t="cursuri:loc")
-document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('[data-t]'); if (!a) return; const [n, v] = a.dataset.t.split(':'); track('click_' + n, v); });
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('[data-t]'); if (!a) return; const [n, v] = a.dataset.t.split(':'); track('click_' + n, n === 'start' ? (v || '') + '|' + (S.src || 'necunoscut') : v); });
+
+/* ---------------- de unde a venit vizitatorul ----------------
+   Ordinea: 1) parametrul din link (?src=facebook), 2) browserul intern al aplicației (Facebook, Instagram, LinkedIn),
+   3) pagina de pe care a venit (referrer), 4) „direct” (link lipit, WhatsApp, e-mail, iconița instalată). */
+function detectSource() {
+  try {
+    const q = new URLSearchParams(location.search);
+    const p = (q.get('src') || q.get('utm_source') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 30);
+    if (p) return ({ fb: 'facebook', li: 'linkedin', ig: 'instagram', wa: 'whatsapp' })[p] || p;
+    const ua = navigator.userAgent || '';
+    if (/FBAN|FBAV|FB_IAB|FB4A|FBIOS/i.test(ua)) return 'facebook';
+    if (/Instagram/i.test(ua)) return 'instagram';
+    if (/LinkedInApp/i.test(ua)) return 'linkedin';
+    const r = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : '';
+    if (!r || r === location.hostname || /github\.io$/.test(r)) return 'direct';
+    if (/(^|\.)(facebook\.com|fb\.me|fb\.com|messenger\.com)$/.test(r)) return 'facebook';
+    if (/(^|\.)(linkedin\.com|lnkd\.in)$/.test(r)) return 'linkedin';
+    if (/(^|\.)instagram\.com$/.test(r)) return 'instagram';
+    if (/(^|\.)google\./.test(r)) return 'google';
+    if (/evotrainhub\.com$/.test(r)) return 'site-evotrainhub';
+    return r.slice(0, 40);
+  } catch { return 'necunoscut'; }
+}
+// Scoatem ?src= din bara de adresă, ca linkul copiat mai departe să nu poarte sursa greșită.
+function cleanUrl() { try { if (location.search) history.replaceState(null, '', location.pathname + location.hash); } catch {} }
 
 // statistici anonime: fără nume, fără e-mail, fără identificator
 function track(name, value) { send({ type: 'event', name, value: value || '', source: 'ai-pas-cu-pas' }); }
@@ -1124,7 +1149,8 @@ function renderCert() {
 
 /* ---------------- pornire ---------------- */
 initGate();
-if (!S.counted) { S.counted = true; save(); track('prima_vizita'); }
+if (!S.counted) { S.counted = true; S.src = detectSource(); save(); track('prima_vizita', S.src); }
+cleanUrl();
 initInApp(); initFooter();
 route();
 })();
